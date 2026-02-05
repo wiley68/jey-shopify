@@ -16,31 +16,18 @@
 5) Локални промени
    - Добави/обнови Theme settings (config/settings_schema.json)
    {
-    "name": "Банка ДСК покупки на Кредит",
+    "name": "ПБ Лични Финанси",
     "settings": [
        {
          "type": "checkbox",
-         "id": "dskapi_status",
-         "label": "DSK Credit API покупки на Кредит",
-         "info": "Дава възможност на Вашите клиенти да закупуват стока на изплащане с DSK Credit API.",
+         "id": "jet_status_in",
+         "label": "Включи модула",
+         "info": "Показвай бутоните за закупуване на кредит през ПБ Лични Финанси",
          "default": true
-       },
-       {
-         "type": "text",
-         "id": "dskapi_cid",
-         "label": "Уникален идентификатор на магазина",
-         "info": "Уникален идентификатор на магазина в системата на DSK Credit API. Ако не е попълнен, бутонът няма да се показва.",
-       },
-       {
-         "type": "number",
-         "id": "dskapi_gap",
-         "label": "Свободно място над бутона",
-         "info": "Свободно място над бутона в px.",
-         "default": 0
        }
     ]
   }
-   - Добави snippet-а, snippets/dsk-product-button.liquid
+   - Добави snippet-а, snippets/jet-product-button.liquid
 
 6) Dev preview (hot reload без push)
    shopify theme dev -s esjmyi-8f.myshopify.com
@@ -48,7 +35,7 @@
    - Правиш промени и ги виждаш веднага
    - Правим промени в настройките от Theme settings/Leasing
    - Добавяме блок там къде искаме (продуктова страница). Използваме Custom Liquid
-   - Custom Liquid: {% render 'dsk-product-button', product: product %}
+   - Custom Liquid: {% render 'jet-product-button', product: product %}
 
 7) Push като unpublished (safe deploy)
    shopify theme push -s esjmyi-8f.myshopify.com --unpublished
