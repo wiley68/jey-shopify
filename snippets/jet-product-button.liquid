@@ -1,3 +1,62 @@
-{% if settings.jet_status_in and shop.currency == 'EUR' %}
-  <div class="jet-product-button">ПБ Лични Финанси</div>
+{% if product and product.selected_or_first_available_variant %}
+  {% if settings.jet_status_in and shop.currency == 'EUR' %}
+    {% assign product_price = product.selected_or_first_available_variant.price | divided_by: 100.0 %}
+    {% if product_price < settings.jet_minprice %}
+      {% comment %}Цената е по-малка от минималната, не показваме нищо{% endcomment %}
+    {% else %}
+      {% assign jet_email_valid = false %}
+      {% if settings.jet_email != blank %}
+        {% assign jet_email_trimmed = settings.jet_email | strip %}
+        {% assign jet_email_array = jet_email_trimmed | split: ',' %}
+        {% assign jet_email_valid = true %}
+        {% for email in jet_email_array %}
+          {% assign email_trimmed = email | strip %}
+          {% unless email_trimmed contains '@' and email_trimmed contains '.' %}
+            {% assign jet_email_valid = false %}
+            {% break %}
+          {% endunless %}
+        {% endfor %}
+      {% endif %}
+
+      {% assign jet_id_valid = false %}
+      {% if settings.jet_id != blank %}
+        {% assign jet_id_trimmed = settings.jet_id | strip %}
+        {% if jet_id_trimmed != blank %}
+          {% assign jet_id_valid = true %}
+        {% endif %}
+      {% endif %}
+
+      {% if jet_email_valid and jet_id_valid %}
+        <div
+          class="jet-product-button"
+          {% if settings.jet_gap > 0 %}
+            style="margin-top: {{ settings.jet_gap }}px;"
+          {% endif %}
+        >
+          ПБ Лични Финанси
+        </div>
+        {% if settings.jet_vnoska %}
+          <div>ВНОСКА</div>
+        {% endif %}
+
+        {% if settings.jet_card_in %}
+          <div class="jet-product-button">ПБ Лични Финанси (кредитна карта)</div>
+          {% if settings.jet_vnoska %}
+            <div>ВНОСКА</div>
+          {% endif %}
+        {% endif %}
+      {% else %}
+        <div style="color: #d32f2f; padding: 10px; background-color: #ffebee; border: 1px solid #ef5350; border-radius: 4px;">
+          {% unless jet_email_valid %}
+            Необходимо е да попълните параметъра "Избери email за изпращане" в настройките на темата.
+          {% endunless %}
+          {% unless jet_id_valid %}
+            {% if jet_email_valid == false %}<br>{% endif %}
+            Необходимо е да попълните параметъра "Избери идентификатор на магазина за изпращане" в настройките на
+            темата.
+          {% endunless %}
+        </div>
+      {% endif %}
+    {% endif %}
+  {% endif %}
 {% endif %}
