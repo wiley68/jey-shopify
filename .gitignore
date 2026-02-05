@@ -1,0 +1,6 @@
+# Игнорирай всичко
+*
+
+# Допускай само тези файлове
+!.gitignore
+!shopify-theme-procedure.txt
