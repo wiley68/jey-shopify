@@ -640,6 +640,193 @@
     display.textContent = opt ? opt.textContent || opt.value : '';
   }
 
+  /** Синхронизира custom dropdown за вноски – картов попъп */
+  function syncJetVnoskiDisplayCard() {
+    const sel = document.getElementById('jet-vnoski-select-card');
+    const display = document.getElementById('jet-vnoski-display-card');
+    if (!sel || !display || !(sel instanceof HTMLSelectElement)) return;
+    const opt = sel.options[sel.selectedIndex];
+    display.textContent = opt ? opt.textContent || opt.value : '';
+  }
+
+  /** Прилага ограничения за опции вноски – картов попъп @param {number} totalCreditPriceEuro */
+  function applyVnoskiOptionsRestrictionsCard(totalCreditPriceEuro) {
+    const disabledSet = getDisabledVnoskiValues(totalCreditPriceEuro);
+    const vnoskiSelect = document.getElementById('jet-vnoski-select-card');
+    if (vnoskiSelect && vnoskiSelect instanceof HTMLSelectElement) {
+      for (let i = 0; i < vnoskiSelect.options.length; i++) {
+        const opt = vnoskiSelect.options[i];
+        if (opt) opt.disabled = disabledSet.has(opt.value);
+      }
+    }
+    const vnoskiList = document.getElementById('jet-vnoski-list-card');
+    if (vnoskiList) {
+      const options = vnoskiList.querySelectorAll('.jet-select-option');
+      options.forEach(function (el) {
+        const val = el.getAttribute('data-value');
+        const isDisabled = val !== null && disabledSet.has(val);
+        el.classList.toggle('jet-select-option--disabled', isDisabled);
+        el.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+      });
+    }
+  }
+
+  /** Обновява стойностите в картовия popup – използва jet_purcent_card @param {number} productPrice @param {number} parva @param {number} vnoski @param {number} jetPurcentCard */
+  function updatePopupValuesCard(productPrice, parva, vnoski, jetPurcentCard) {
+    const container = document.getElementById('jet-product-button-card-container');
+    const jetMinpriceEuro = container ? (parseFloat(container.dataset.jetMinprice || '0') || 0) : 0;
+    const maxParvaCents = Math.max(0, productPrice - Math.round(jetMinpriceEuro * 100));
+    if (parva > maxParvaCents) parva = maxParvaCents;
+    const productPriceEuro = productPrice / 100.0;
+    const parvaEuro = parva / 100.0;
+    const totalCreditPriceEuro = productPriceEuro - parvaEuro;
+    const totalCreditPriceCents = Math.round(totalCreditPriceEuro * 100);
+    vnoski = getAllowedVnoski(totalCreditPriceEuro, vnoski);
+    const monthlyVnoskaCents = calculateJetVnoska(totalCreditPriceCents, vnoski, jetPurcentCard);
+    const monthlyVnoskaEuro = monthlyVnoskaCents / 100.0;
+    const totalPaymentsEuro = vnoski * monthlyVnoskaEuro;
+    const parvaInput = document.getElementById('jet-parva-input-card');
+    if (parvaInput && parvaInput instanceof HTMLInputElement) parvaInput.value = String(Math.round(parvaEuro));
+    const productPriceInput = document.getElementById('jet-product-price-input-card');
+    if (productPriceInput && productPriceInput instanceof HTMLInputElement) productPriceInput.value = (productPrice / 100).toFixed(2);
+    const vnoskiSelect = document.getElementById('jet-vnoski-select-card');
+    if (vnoskiSelect && vnoskiSelect instanceof HTMLSelectElement) {
+      const val = String(vnoski);
+      vnoskiSelect.value = val;
+      for (let i = 0; i < vnoskiSelect.options.length; i++) {
+        const opt = vnoskiSelect.options[i];
+        if (opt && opt.value === val) { vnoskiSelect.selectedIndex = i; break; }
+      }
+      syncJetVnoskiDisplayCard();
+    }
+    const totalCreditInput = document.getElementById('jet-total-credit-input-card');
+    if (totalCreditInput && totalCreditInput instanceof HTMLInputElement) totalCreditInput.value = totalCreditPriceEuro.toFixed(2);
+    const monthlyVnoskaInput = document.getElementById('jet-monthly-vnoska-input-card');
+    if (monthlyVnoskaInput && monthlyVnoskaInput instanceof HTMLInputElement) monthlyVnoskaInput.value = monthlyVnoskaEuro.toFixed(2);
+    const totalPaymentsInput = document.getElementById('jet-total-payments-input-card');
+    if (totalPaymentsInput && totalPaymentsInput instanceof HTMLInputElement) totalPaymentsInput.value = totalPaymentsEuro.toFixed(2);
+    var gprGlp = calculateGprGlp(vnoski, monthlyVnoskaEuro, totalCreditPriceEuro);
+    var gprInput = document.getElementById('jet-fix-gpr-input-card');
+    if (gprInput && gprInput instanceof HTMLInputElement) gprInput.value = gprGlp.gpr.toFixed(2);
+    var glpInput = document.getElementById('jet-glp-input-card');
+    if (glpInput && glpInput instanceof HTMLInputElement) glpInput.value = gprGlp.glp.toFixed(2);
+    applyVnoskiOptionsRestrictionsCard(totalCreditPriceEuro);
+  }
+
+  function recalculatePopupCard() {
+    const container = document.getElementById('jet-product-button-card-container');
+    if (!container) return;
+    const parvaInput = document.getElementById('jet-parva-input-card');
+    const vnoskiSelect = document.getElementById('jet-vnoski-select-card');
+    if (!parvaInput || !vnoskiSelect) return;
+    const productPrice = parseFloat(container.dataset.productPrice || '0');
+    const jetPurcentCard = parseFloat(container.dataset.jetPurcentCard || '0');
+    const jetMinpriceEuro = parseFloat(container.dataset.jetMinprice || '0') || 0;
+    const maxParvaCents = Math.max(0, productPrice - Math.round(jetMinpriceEuro * 100));
+    let parvaEuro = parseFloat(parvaInput instanceof HTMLInputElement ? parvaInput.value : '0') || 0;
+    let parvaCents = Math.round(parvaEuro * 100);
+    if (parvaCents > maxParvaCents) {
+      parvaCents = maxParvaCents;
+      parvaEuro = parvaCents / 100;
+      if (parvaInput instanceof HTMLInputElement) parvaInput.value = String(parvaCents / 100);
+    }
+    const vnoski = parseInt(vnoskiSelect instanceof HTMLSelectElement ? vnoskiSelect.value : '12') || 12;
+    updatePopupValuesCard(productPrice, parvaCents, vnoski, jetPurcentCard);
+    updateVnoskaText(productPrice, parvaCents, vnoski);
+  }
+
+  function openJetPopupCard() {
+    const overlay = document.getElementById('jet-popup-overlay-card');
+    if (!overlay) return;
+    const container = document.getElementById('jet-product-button-card-container');
+    if (!container) return;
+    let productPrice = getVariantPrice();
+    if (!productPrice || productPrice === 0) productPrice = parseFloat(container.dataset.productPrice || '0');
+    const quantityInput = document.querySelector('input[name="quantity"], input[type="number"][name*="quantity"]');
+    let quantity = 1;
+    if (quantityInput && quantityInput instanceof HTMLInputElement) quantity = parseInt(quantityInput.value) || 1;
+    productPrice = productPrice * quantity;
+    const jetPurcentCard = parseFloat(container.dataset.jetPurcentCard || '0');
+    const currentParva = parseFloat(container.dataset.jetParva || '0') || 0;
+    const vnoskaEl = document.querySelector('.jet-vnoska-card');
+    const vnoskiFromEl = vnoskaEl instanceof HTMLElement ? vnoskaEl.dataset.vnoski : undefined;
+    const currentVnoski = parseInt(vnoskiFromEl || container.dataset.jetVnoskiDefault || '12', 10);
+    const step1 = document.getElementById('jet-popup-step1-card');
+    const step2 = document.getElementById('jet-popup-step2-card');
+    const footerStep1 = document.getElementById('jet-popup-footer-step1-card');
+    const footerStep2 = document.getElementById('jet-popup-footer-step2-card');
+    if (step1) step1.style.display = '';
+    if (step2) step2.style.display = 'none';
+    if (footerStep1) footerStep1.style.display = '';
+    if (footerStep2) footerStep2.style.display = 'none';
+    const vnoskiListEl = document.getElementById('jet-vnoski-list-card');
+    if (vnoskiListEl) vnoskiListEl.hidden = true;
+    overlay.style.display = 'flex';
+    updatePopupValuesCard(productPrice, currentParva, currentVnoski, jetPurcentCard);
+  }
+
+  function closeJetPopupCard() {
+    const overlay = document.getElementById('jet-popup-overlay-card');
+    if (overlay) overlay.style.display = 'none';
+    var step2Ids = ['jet-step2-firstname-card', 'jet-step2-lastname-card', 'jet-step2-egn-card', 'jet-step2-phone-card', 'jet-step2-email-card'];
+    step2Ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el instanceof HTMLInputElement) {
+        el.value = '';
+        el.classList.remove('jet-input-error');
+      }
+    });
+    var termsCheck = document.getElementById('jet-step2-terms-checkbox-card');
+    if (termsCheck && termsCheck instanceof HTMLInputElement) termsCheck.checked = false;
+    var step2SubmitBtn = document.getElementById('jet-step2-submit-btn-card');
+    if (step2SubmitBtn && step2SubmitBtn instanceof HTMLButtonElement) step2SubmitBtn.disabled = true;
+    const step1 = document.getElementById('jet-popup-step1-card');
+    const step2 = document.getElementById('jet-popup-step2-card');
+    const footerStep1 = document.getElementById('jet-popup-footer-step1-card');
+    const footerStep2 = document.getElementById('jet-popup-footer-step2-card');
+    if (step1) step1.style.display = '';
+    if (step2) step2.style.display = 'none';
+    if (footerStep1) footerStep1.style.display = '';
+    if (footerStep2) footerStep2.style.display = 'none';
+    var termsCheckboxCard = document.getElementById('jet-terms-checkbox-card');
+    var gdprCheckboxCard = document.getElementById('jet-gdpr-checkbox-card');
+    if (termsCheckboxCard && termsCheckboxCard instanceof HTMLInputElement) {
+      termsCheckboxCard.checked = false;
+      termsCheckboxCard.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (gdprCheckboxCard && gdprCheckboxCard instanceof HTMLInputElement) {
+      gdprCheckboxCard.checked = false;
+      gdprCheckboxCard.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    var parvaInputCard = document.getElementById('jet-parva-input-card');
+    if (parvaInputCard && parvaInputCard instanceof HTMLInputElement) {
+      parvaInputCard.value = '0';
+    }
+    var addToCartCardBtn = document.getElementById('jet-add-to-cart-btn-card');
+    if (addToCartCardBtn && addToCartCardBtn instanceof HTMLButtonElement) {
+      addToCartCardBtn.disabled = false;
+    }
+  }
+
+  /** Валидира българско ЕГН (10 цифри + контролна цифра) @param {string} egn */
+  function isValidEgn(egn) {
+    if (!egn || typeof egn !== 'string') return false;
+    var digits = egn.replace(/\D/g, '');
+    if (digits.length !== 10) return false;
+    var weights = [2, 4, 8, 5, 10, 9, 7, 3, 6];
+    var sum = 0;
+    for (var i = 0; i < 9; i++) {
+      var d = digits[i];
+      var w = weights[i];
+      if (d === undefined || w === undefined) return false;
+      sum += parseInt(d, 10) * w;
+    }
+    var check = sum % 11;
+    if (check === 10) check = 0;
+    var last = digits[9];
+    return last !== undefined && parseInt(last, 10) === check;
+  }
+
   /**
    * Инициализира popup функционалността
    */
@@ -781,25 +968,6 @@
     }
 
     // Стъпка 2: валидация и бутон Изпрати
-    /** Валидира българско ЕГН (10 цифри + контролна цифра) @param {string} egn */
-    function isValidEgn(egn) {
-      if (!egn || typeof egn !== 'string') return false;
-      var digits = egn.replace(/\D/g, '');
-      if (digits.length !== 10) return false;
-      var weights = [2, 4, 8, 5, 10, 9, 7, 3, 6];
-      var sum = 0;
-      for (var i = 0; i < 9; i++) {
-        var d = digits[i];
-        var w = weights[i];
-        if (d === undefined || w === undefined) return false;
-        sum += parseInt(d, 10) * w;
-      }
-      var check = sum % 11;
-      if (check === 10) check = 0;
-      var last = digits[9];
-      return last !== undefined && parseInt(last, 10) === check;
-    }
-
     /**
      * Проверка дали всички условия за стъпка 2 са изпълнени.
      * Условия: попълнени Име и Фамилия, валидно ЕГН, телефон минимум 10 цифри,
@@ -902,6 +1070,202 @@
     }
   }
 
+  /**
+   * Инициализира popup за бутона с кредитна карта (само ако jet_card_in е включен)
+   */
+  function initPopupCard() {
+    const overlay = document.getElementById('jet-popup-overlay-card');
+    const container = document.getElementById('jet-product-button-card-container');
+    if (!overlay || !container) return;
+
+    container.addEventListener('click', function () {
+      openJetPopupCard();
+    });
+
+    var vnoskiSelect = document.getElementById('jet-vnoski-select-card');
+    var vnoskiDisplay = document.getElementById('jet-vnoski-display-card');
+    var vnoskiList = document.getElementById('jet-vnoski-list-card');
+    if (vnoskiSelect && vnoskiDisplay && vnoskiList && vnoskiSelect instanceof HTMLSelectElement) {
+      for (var i = 0; i < vnoskiSelect.options.length; i++) {
+        var opt = vnoskiSelect.options[i];
+        if (!opt) continue;
+        var div = document.createElement('div');
+        div.className = 'jet-select-option';
+        div.setAttribute('role', 'option');
+        div.dataset.value = opt.value;
+        div.textContent = opt.textContent || opt.value;
+        vnoskiList.appendChild(div);
+      }
+      syncJetVnoskiDisplayCard();
+      var listEl = vnoskiList;
+      var selectEl = vnoskiSelect;
+      vnoskiDisplay.addEventListener('click', function () {
+        if (listEl) listEl.hidden = !listEl.hidden;
+      });
+      vnoskiList.addEventListener('click', function (e) {
+        var t = e.target;
+        if (t && t instanceof HTMLElement && t.classList.contains('jet-select-option') && t.dataset.value !== undefined) {
+          if (t.classList.contains('jet-select-option--disabled')) return;
+          if (selectEl && selectEl instanceof HTMLSelectElement) selectEl.value = t.dataset.value || '';
+          if (selectEl) selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+          syncJetVnoskiDisplayCard();
+          if (listEl) listEl.hidden = true;
+        }
+      });
+      document.addEventListener('click', function closeListCard(e) {
+        if (!listEl || listEl.hidden) return;
+        var target = e.target instanceof Node ? e.target : null;
+        if (target !== vnoskiDisplay && !listEl.contains(target)) listEl.hidden = true;
+      });
+    }
+
+    var recalcCardBtn = document.getElementById('jet-recalculate-btn-card');
+    if (recalcCardBtn) recalcCardBtn.addEventListener('click', recalculatePopupCard);
+    var parvaCardInput = document.getElementById('jet-parva-input-card');
+    if (parvaCardInput) parvaCardInput.addEventListener('blur', recalculatePopupCard);
+    var vnoskiSelectCardEl = document.getElementById('jet-vnoski-select-card');
+    if (vnoskiSelectCardEl) vnoskiSelectCardEl.addEventListener('change', recalculatePopupCard);
+
+    var cancelCardBtn = document.getElementById('jet-cancel-btn-card');
+    if (cancelCardBtn) cancelCardBtn.addEventListener('click', closeJetPopupCard);
+
+    var addToCartCardBtn = document.getElementById('jet-add-to-cart-btn-card');
+    if (addToCartCardBtn && addToCartCardBtn instanceof HTMLButtonElement) {
+      var addToCartBtnRefCard = addToCartCardBtn;
+      addToCartCardBtn.addEventListener('click', function () {
+        if (addToCartBtnRefCard.disabled) return;
+        addToCartBtnRefCard.disabled = true;
+        addCurrentProductToCartAndGoToCart().then(function (ok) {
+          if (!ok) addToCartBtnRefCard.disabled = false;
+          else closeJetPopupCard();
+        });
+      });
+    }
+
+    var buyOnCreditCardBtn = /** @type {HTMLButtonElement | null} */ (document.getElementById('jet-buy-on-credit-btn-card'));
+    var termsCard = document.getElementById('jet-terms-checkbox-card');
+    var gdprCard = document.getElementById('jet-gdpr-checkbox-card');
+    function updateBuyOnCreditCardState() {
+      if (!buyOnCreditCardBtn) return;
+      var termsOk = termsCard instanceof HTMLInputElement ? termsCard.checked : false;
+      var gdprOk = gdprCard instanceof HTMLInputElement ? gdprCard.checked : false;
+      buyOnCreditCardBtn.disabled = !(termsOk && gdprOk);
+    }
+    if (termsCard) termsCard.addEventListener('change', updateBuyOnCreditCardState);
+    if (gdprCard) gdprCard.addEventListener('change', updateBuyOnCreditCardState);
+    updateBuyOnCreditCardState();
+
+    if (buyOnCreditCardBtn) {
+      var buyOnCreditBtnRefCard = buyOnCreditCardBtn;
+      buyOnCreditCardBtn.addEventListener('click', function () {
+        if (buyOnCreditBtnRefCard.disabled) return;
+        var s1 = document.getElementById('jet-popup-step1-card');
+        var s2 = document.getElementById('jet-popup-step2-card');
+        var f1 = document.getElementById('jet-popup-footer-step1-card');
+        var f2 = document.getElementById('jet-popup-footer-step2-card');
+        if (s1) s1.style.display = 'none';
+        if (s2) s2.style.display = 'flex';
+        if (f1) f1.style.display = 'none';
+        if (f2) f2.style.display = 'flex';
+        setTimeout(updateStep2SubmitButtonStateCard, 0);
+      });
+    }
+
+    var step2BackCard = document.getElementById('jet-step2-back-btn-card');
+    if (step2BackCard) {
+      step2BackCard.addEventListener('click', function () {
+        var s1 = document.getElementById('jet-popup-step1-card');
+        var s2 = document.getElementById('jet-popup-step2-card');
+        var f1 = document.getElementById('jet-popup-footer-step1-card');
+        var f2 = document.getElementById('jet-popup-footer-step2-card');
+        if (s1) s1.style.display = '';
+        if (s2) s2.style.display = 'none';
+        if (f1) f1.style.display = '';
+        if (f2) f2.style.display = 'none';
+      });
+    }
+    var step2CancelCard = document.getElementById('jet-step2-cancel-btn-card');
+    if (step2CancelCard) step2CancelCard.addEventListener('click', closeJetPopupCard);
+
+    function isStep2FormValidCard() {
+      var fn = document.getElementById('jet-step2-firstname-card');
+      var ln = document.getElementById('jet-step2-lastname-card');
+      var egn = document.getElementById('jet-step2-egn-card');
+      var ph = document.getElementById('jet-step2-phone-card');
+      var em = document.getElementById('jet-step2-email-card');
+      var tr = document.getElementById('jet-step2-terms-checkbox-card');
+      if (!fn || !ln || !egn || !ph || !em || !tr) return false;
+      if (!(fn instanceof HTMLInputElement) || !(ln instanceof HTMLInputElement) || !(egn instanceof HTMLInputElement) || !(ph instanceof HTMLInputElement) || !(em instanceof HTMLInputElement) || !(tr instanceof HTMLInputElement)) return false;
+      var nameOk = (fn.value || '').trim().length > 0 && (ln.value || '').trim().length > 0;
+      var egnOk = isValidEgn((egn.value || '').trim());
+      var phoneOk = (ph.value || '').replace(/\s/g, '').length >= 10;
+      var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((em.value || '').trim());
+      var termsOk = tr.checked === true;
+      return nameOk && egnOk && phoneOk && emailOk && termsOk;
+    }
+    function updateStep2SubmitButtonStateCard() {
+      var btn = document.getElementById('jet-step2-submit-btn-card');
+      if (btn && btn instanceof HTMLButtonElement) btn.disabled = !isStep2FormValidCard();
+    }
+    function highlightInvalidStep2FieldsCard() {
+      var fn = document.getElementById('jet-step2-firstname-card');
+      var ln = document.getElementById('jet-step2-lastname-card');
+      var egn = document.getElementById('jet-step2-egn-card');
+      var ph = document.getElementById('jet-step2-phone-card');
+      var em = document.getElementById('jet-step2-email-card');
+      /** @param {HTMLElement} el @param {boolean} inv */
+      function setErr(el, inv) {
+        if (el && el.classList) { if (inv) el.classList.add('jet-input-error'); else el.classList.remove('jet-input-error'); }
+      }
+      if (fn instanceof HTMLInputElement) setErr(fn, (fn.value || '').trim().length === 0);
+      if (ln instanceof HTMLInputElement) setErr(ln, (ln.value || '').trim().length === 0);
+      if (egn instanceof HTMLInputElement) setErr(egn, !isValidEgn((egn.value || '').trim()));
+      if (ph instanceof HTMLInputElement) setErr(ph, (ph.value || '').replace(/\s/g, '').length < 10);
+      if (em instanceof HTMLInputElement) setErr(em, !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((em.value || '').trim()));
+    }
+    /** @param {HTMLElement} el */
+    function clearInputErrorCard(el) {
+      if (el && el.classList) el.classList.remove('jet-input-error');
+    }
+    var step2InputIdsCard = ['jet-step2-firstname-card', 'jet-step2-lastname-card', 'jet-step2-egn-card', 'jet-step2-phone-card', 'jet-step2-email-card'];
+    step2InputIdsCard.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el instanceof HTMLElement) {
+        var fieldEl = el;
+        el.addEventListener('blur', updateStep2SubmitButtonStateCard);
+        el.addEventListener('focus', function () { clearInputErrorCard(fieldEl); });
+      }
+    });
+    var egnCardEl = document.getElementById('jet-step2-egn-card');
+    if (egnCardEl && egnCardEl instanceof HTMLInputElement) {
+      var egnInputRefCard = egnCardEl;
+      egnCardEl.addEventListener('input', function () {
+        egnInputRefCard.value = egnInputRefCard.value.replace(/\D/g, '').slice(0, 10);
+      });
+    }
+    var step2TermsCard = document.getElementById('jet-step2-terms-checkbox-card');
+    if (step2TermsCard) step2TermsCard.addEventListener('change', updateStep2SubmitButtonStateCard);
+
+    var step2SubmitWrapCard = document.getElementById('jet-step2-submit-wrap-card');
+    var step2SubmitBtnCard = document.getElementById('jet-step2-submit-btn-card');
+    if (step2SubmitWrapCard) {
+      step2SubmitWrapCard.addEventListener('click', function (e) {
+        if (step2SubmitBtnCard && step2SubmitBtnCard instanceof HTMLButtonElement && step2SubmitBtnCard.disabled) {
+          e.preventDefault();
+          highlightInvalidStep2FieldsCard();
+        }
+      });
+    }
+    if (step2SubmitBtnCard && step2SubmitBtnCard instanceof HTMLButtonElement) {
+      var submitBtnRefCard = step2SubmitBtnCard;
+      step2SubmitBtnCard.disabled = true;
+      step2SubmitBtnCard.addEventListener('click', function () {
+        if (submitBtnRefCard.disabled) return;
+        // TODO: изпращане на заявка (карта)
+      });
+    }
+  }
+
   function init() {
     const container = document.getElementById('jet-product-button-container');
     if (!container) return;
@@ -921,6 +1285,9 @@
 
     // Инициализираме popup функционалността
     initPopup();
+    if (document.getElementById('jet-popup-overlay-card') && document.getElementById('jet-product-button-card-container')) {
+      initPopupCard();
+    }
 
     // Прихващаме промяна на опциите (варианти)
     // Използваме делегиране на събития за да работи и с динамично добавени елементи

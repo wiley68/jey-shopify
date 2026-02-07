@@ -351,6 +351,11 @@
           <div
             id="jet-product-button-card-container"
             class="jet-product-button"
+            data-product-price="{{ product.selected_or_first_available_variant.price }}"
+            data-jet-minprice="{{ settings.jet_minprice }}"
+            data-jet-min-vnoski="{{ jet_min_vnoski }}"
+            data-jet-vnoski-default="{{ settings.jet_vnoski_default }}"
+            data-jet-parva="{{ jet_parva }}"
             data-jet-purcent-card="{{ settings.jet_purcent_card }}"
           >
             <img
@@ -378,6 +383,226 @@
               {{ jet_vnoski }} x {{ jet_vnoska_card | round: 2 }} €
             </div>
           {% endif %}
+
+          <!-- Popup прозорец за лизинг (кредитна карта) – същата логика, jet_purcent_card -->
+          <div id="jet-popup-overlay-card" class="jet-popup-overlay" style="display: none;">
+            <div class="jet-popup-container">
+              <div class="jet-popup-content">
+                <div id="jet-popup-step1-card" class="jet-popup-step">
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label">Първоначална вноска (€)</label>
+                    <div class="jet-popup-input-group">
+                      <input type="number" id="jet-parva-input-card" class="jet-popup-input" min="0" step="1" value="0">
+                      <button type="button" id="jet-recalculate-btn-card" class="jet-popup-btn">Преизчисли</button>
+                    </div>
+                  </div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label">Цена на стоките (€)</label>
+                    <input
+                      type="text"
+                      id="jet-product-price-input-card"
+                      class="jet-popup-input jet-popup-input-readonly"
+                      readonly
+                      value="{{ product_price | round: 2 }}"
+                    >
+                  </div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label">Брой погасителни вноски</label>
+                    <div class="jet-select-wrap">
+                      <select id="jet-vnoski-select-card" class="jet-popup-select" aria-hidden="true" tabindex="-1">
+                        <option value="3">3 месеца</option>
+                        <option value="6">6 месеца</option>
+                        <option value="9">9 месеца</option>
+                        <option value="12" selected>12 месеца</option>
+                        <option value="15">15 месеца</option>
+                        <option value="18">18 месеца</option>
+                        <option value="24">24 месеца</option>
+                        <option value="30">30 месеца</option>
+                        <option value="36">36 месеца</option>
+                      </select>
+                      <div
+                        id="jet-vnoski-display-card"
+                        class="jet-select-display"
+                        aria-label="Брой погасителни вноски"
+                      ></div>
+                      <div id="jet-vnoski-list-card" class="jet-select-list" role="listbox" hidden></div>
+                    </div>
+                  </div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label">Общ размер на кредита (€)</label>
+                    <input
+                      type="text"
+                      id="jet-total-credit-input-card"
+                      class="jet-popup-input jet-popup-input-readonly"
+                      readonly
+                      value="{{ jet_total_credit_price | round: 2 }}"
+                    >
+                  </div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label">Месечна вноска (€)</label>
+                    <input
+                      type="text"
+                      id="jet-monthly-vnoska-input-card"
+                      class="jet-popup-input jet-popup-input-readonly"
+                      readonly
+                      value="{{ jet_vnoska_card | round: 2 }}"
+                    >
+                  </div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label">Фикс ГПР (%)</label>
+                    <input
+                      type="text"
+                      id="jet-fix-gpr-input-card"
+                      class="jet-popup-input jet-popup-input-readonly"
+                      readonly
+                      value="0.00"
+                    >
+                  </div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label">ГЛП (%)</label>
+                    <input
+                      type="text"
+                      id="jet-glp-input-card"
+                      class="jet-popup-input jet-popup-input-readonly"
+                      readonly
+                      value="0.00"
+                    >
+                  </div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label">Обща стойност на плащанията (€)</label>
+                    <input
+                      type="text"
+                      id="jet-total-payments-input-card"
+                      class="jet-popup-input jet-popup-input-readonly"
+                      readonly
+                      value="{{ jet_vnoski | times: jet_vnoska_card | round: 2 }}"
+                    >
+                  </div>
+                  <div class="jet-popup-divider"></div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-checkbox-label">
+                      <input type="checkbox" id="jet-terms-checkbox-card" class="jet-popup-checkbox">
+                      <a href="https://www.postbank.bg/common-conditions-PFBG" target="_blank" rel="noopener noreferrer"
+                        >Запознах се с условията за кандидатстване на ПБ Лични финанси</a
+                      >
+                    </label>
+                  </div>
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-checkbox-label">
+                      <input type="checkbox" id="jet-gdpr-checkbox-card" class="jet-popup-checkbox">
+                      <a
+                        href="https://www.postbank.bg/Personal-Data-PFBG-retailers"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >"GDPR" означава Регламент (ЕС) 2016/679...</a
+                      >
+                    </label>
+                  </div>
+                </div>
+                <div id="jet-popup-step2-card" class="jet-popup-step" style="display: none;">
+                  <div class="jet-popup-step2-body">
+                    <div class="jet-popup-row">
+                      <label class="jet-popup-label" for="jet-step2-firstname-card">Име *</label>
+                      <input
+                        type="text"
+                        id="jet-step2-firstname-card"
+                        class="jet-popup-input"
+                        autocomplete="given-name"
+                        required
+                      >
+                    </div>
+                    <div class="jet-popup-row">
+                      <label class="jet-popup-label" for="jet-step2-lastname-card">Фамилия *</label>
+                      <input
+                        type="text"
+                        id="jet-step2-lastname-card"
+                        class="jet-popup-input"
+                        autocomplete="family-name"
+                        required
+                      >
+                    </div>
+                    <div class="jet-popup-row">
+                      <label class="jet-popup-label" for="jet-step2-egn-card">ЕГН *</label>
+                      <input
+                        type="text"
+                        id="jet-step2-egn-card"
+                        class="jet-popup-input"
+                        inputmode="numeric"
+                        pattern="[0-9]{10}"
+                        maxlength="10"
+                        required
+                      >
+                    </div>
+                    <div class="jet-popup-row">
+                      <label class="jet-popup-label" for="jet-step2-phone-card">Мобилен телефон *</label>
+                      <input type="tel" id="jet-step2-phone-card" class="jet-popup-input" autocomplete="tel" required>
+                    </div>
+                    <div class="jet-popup-row">
+                      <label class="jet-popup-label" for="jet-step2-email-card">E-Mail *</label>
+                      <input
+                        type="email"
+                        id="jet-step2-email-card"
+                        class="jet-popup-input"
+                        autocomplete="email"
+                        required
+                      >
+                    </div>
+                    <div class="jet-popup-divider"></div>
+                    <div class="jet-popup-row">
+                      <label class="jet-popup-checkbox-label">
+                        <input type="checkbox" id="jet-step2-terms-checkbox-card" class="jet-popup-checkbox">
+                        <a
+                          href="https://www.postbank.bg/common-conditions-PFBG"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          >Запознах се с условията за кандидатстване на ПБ Лични финанси *</a
+                        >
+                      </label>
+                    </div>
+                    <div class="jet-popup-row">
+                      <a
+                        href="https://www.postbank.bg/product-information-PBPG-retailers"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="jet-popup-link-text"
+                        >Продуктова Информация на ПБ Лични финанси</a
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="jet-popup-footer">
+                <div id="jet-popup-footer-step1-card" class="jet-popup-footer-inner">
+                  <div class="jet-popup-buttons">
+                    <button type="button" id="jet-cancel-btn-card" class="jet-popup-btn">Откажи</button>
+                    <button type="button" id="jet-add-to-cart-btn-card" class="jet-popup-btn">
+                      Добави в количката
+                    </button>
+                    <button type="button" id="jet-buy-on-credit-btn-card" class="jet-popup-btn" disabled>
+                      Купи на изплащане
+                    </button>
+                  </div>
+                </div>
+                <div
+                  id="jet-popup-footer-step2-card"
+                  class="jet-popup-footer-inner jet-popup-footer-step2"
+                  style="display: none;"
+                >
+                  <div class="jet-popup-buttons jet-popup-buttons-left">
+                    <button type="button" id="jet-step2-back-btn-card" class="jet-popup-btn">Назад</button>
+                  </div>
+                  <div class="jet-popup-buttons jet-popup-buttons-right">
+                    <button type="button" id="jet-step2-cancel-btn-card" class="jet-popup-btn">Откажи</button>
+                    <span class="jet-popup-submit-wrap" id="jet-step2-submit-wrap-card">
+                      <button type="button" id="jet-step2-submit-btn-card" class="jet-popup-btn" disabled>
+                        Изпрати
+                      </button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         {% endif %}
       {% else %}
         <div class="jet-product-error">
