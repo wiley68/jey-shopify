@@ -1,0 +1,423 @@
+/* Jet Cart Button – контейнер (страница количка) */
+.jet-cart-button.jet-product-button {
+  margin-top: var(--jet-gap, 0);
+}
+
+.jet-product-button-img {
+  max-height: 69px;
+  width: auto;
+  height: auto;
+  max-width: none;
+  display: block;
+  cursor: pointer;
+}
+
+/* Разстояние само между двата бутона в количката */
+#jet-cart-button-card-container {
+  margin-top: 20px;
+}
+
+/* Текст за вноските */
+.jet-vnoska-text {
+  display: block;
+  padding: 2px 0px;
+  color: #01A66C;
+  font-size: 14pt;
+  font-weight: 500;
+  line-height: 26px;
+  text-align: left;
+}
+
+/* Съобщение за грешка при липсващи настройки */
+.jet-product-error {
+  color: #d32f2f;
+  padding: 10px;
+  background-color: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 4px;
+}
+
+.jet-product-error ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+/* Popup стилове */
+.jet-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jet-popup-container {
+  background: white;
+  border-radius: 3px;
+  padding: 0;
+  max-width: 1100px;
+  width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0px 0px 30px 0px #000000;
+  overflow-x: hidden;
+}
+
+/* Тяло на попъпа – отстъпи по вертикала с margin, по хоризонтала с padding */
+.jet-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 24px 0 4px 0;
+  padding: 0 24px;
+}
+
+/* Футър – отделна секция, от край до край (като тялото и разделителя) */
+.jet-popup-footer {
+  flex-shrink: 0;
+  width: 100%;
+  background: #01a66c;
+  padding: 16px 24px;
+  border-radius: 0 0 3px 3px;
+  margin: 0;
+}
+
+.jet-popup-footer-inner {
+  width: 100%;
+}
+
+/* Стъпка 2: Назад вляво, Откажи + Изпрати вдясно */
+.jet-popup-footer-step2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Стъпките са flex колони с 8px gap между редовете */
+.jet-popup-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jet-popup-step2-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jet-popup-step2-body .jet-popup-input {
+  text-align: left;
+}
+
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) {
+  gap: 8px;
+}
+
+.jet-popup-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Стилове за първата секция (редове 1–8) – само за реда и етикета, не за input/select */
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8),
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) .jet-popup-label {
+  color: #052e16;
+  font-size: 14pt;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.jet-popup-label {
+  min-width: 200px;
+  font-weight: 500;
+  text-align: left;
+}
+
+/* Колоните в първите 8 реда да са 50/50 */
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) .jet-popup-label {
+  flex: 0 0 50%;
+  min-width: 0;
+  max-width: 50%;
+}
+
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) .jet-popup-input-group {
+  flex: 1;
+}
+
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) .jet-popup-input,
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) .jet-popup-select {
+  flex: 1;
+}
+
+.jet-popup-input-group {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.jet-popup-input,
+.jet-popup-select {
+  flex: 1;
+  padding: 10px 20px;
+  height: 48px;
+  border-radius: 3px;
+  text-align: right;
+  border: 1px solid #15803d;
+  margin: 0;
+  box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.3);
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* Нативна визуализация на select (когато не е в custom wrap) */
+select.jet-popup-select {
+  appearance: menulist;
+  -webkit-appearance: menulist;
+}
+
+/* Custom dropdown за брой вноски – визуално контролираме падинга в опциите */
+.jet-select-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.jet-select-wrap select.jet-popup-select {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.jet-select-display {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  height: 48px;
+  padding: 10px 36px 10px 20px;
+  box-sizing: border-box;
+  border-radius: 3px;
+  border: 1px solid #15803d;
+  background: #fff;
+  box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.3);
+  color: #052e16;
+  font-weight: 600;
+  font-size: inherit;
+  text-align: right;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Икона падащо меню (chevron надолу) в десния край */
+.jet-select-display::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #052e16;
+  pointer-events: none;
+}
+
+.jet-select-display:hover {
+  border-color: #15803d;
+}
+
+.jet-select-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  margin-top: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #15803d;
+  border-radius: 3px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.jet-select-option {
+  padding: 10px 20px 10px 12px;
+  text-align: right;
+  cursor: pointer;
+  color: #052e16;
+  font-weight: 600;
+  border: none;
+  background: none;
+  width: 100%;
+  font-size: inherit;
+  box-sizing: border-box;
+}
+
+.jet-select-option:hover {
+  background: #f0fdf4;
+}
+
+.jet-select-option--disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+  font-weight: 500;
+}
+
+.jet-select-option--disabled:hover {
+  background: transparent;
+}
+
+/* По-дебел шрифт и същият цвят като реда – полетата не наследяват цвета по подразбиране */
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) input.jet-popup-input,
+.jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) select.jet-popup-select,
+input.jet-popup-input,
+select.jet-popup-select {
+  color: #052e16;
+  font-weight: 600;
+}
+
+.jet-popup-input:focus,
+.jet-popup-select:focus {
+  outline: none;
+  border: 1px solid #15803d;
+}
+
+.jet-popup-input-readonly {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* Подсветка при непопълнено/невалидно поле (стъпка 2) */
+.jet-popup-input.jet-input-error,
+.jet-popup-input.jet-input-error:focus {
+  border-color: #dc2626;
+}
+
+.jet-popup-submit-wrap {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.jet-popup-submit-wrap .jet-popup-btn:disabled {
+  pointer-events: none;
+}
+
+.jet-popup-btn {
+  height: 48px;
+  background-color: #166534;
+  border-radius: 3px;
+  border: 0px none white;
+  text-align: center;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 22px;
+  padding: 0px 20px;
+  margin-left: 5px;
+  color: #f0fdf4;
+  cursor: pointer;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.4);
+  color: #f0fdf4;
+}
+
+.jet-popup-btn:hover {
+  background-color: #12542b;
+}
+
+.jet-popup-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.jet-popup-btn:disabled:hover {
+  background-color: #166534;
+}
+
+/* Разделител от край до край на попъпа – излиза извън padding на content */
+.jet-popup-divider {
+  height: 1px;
+  background-color: #01a66c;
+  margin: 8px -24px 0px -24px;
+  width: calc(100% + 48px);
+  max-width: none;
+  flex-shrink: 0;
+}
+
+.jet-popup-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 13px;
+  color: #01a66c;
+  cursor: pointer;
+}
+
+.jet-popup-checkbox-label a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.jet-popup-checkbox-label a:hover {
+  text-decoration: underline;
+}
+
+.jet-popup-link-text {
+  color: #01a66c;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.jet-popup-link-text:hover {
+  text-decoration: underline;
+}
+
+/* Собствен стил за чекбоксите в попъпа – по-големи, квадратни, нативен вид */
+.jet-popup-checkbox {
+  margin-top: 4px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  border-radius: 0;
+  transform: scale(1.5);
+  -ms-transform: scale(1.5);
+  -moz-transform: scale(1.5);
+  -webkit-transform: scale(1.5);
+  padding: 10px;
+  appearance: checkbox;
+  -moz-appearance: checkbox;
+  -webkit-appearance: checkbox;
+  opacity: 1;
+  cursor: pointer;
+}
+
+.jet-popup-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.jet-popup-footer-step2 .jet-popup-buttons-left {
+  justify-content: flex-start;
+}
+
+.jet-popup-footer-step2 .jet-popup-buttons-right {
+  justify-content: flex-end;
+}
