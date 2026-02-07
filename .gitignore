@@ -14,3 +14,5 @@
 !assets/jet_cart.css
 !assets/jet_cart.js
 !.theme-check.yml
+!.shopifyignore
+!app/

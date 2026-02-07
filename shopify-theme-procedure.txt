@@ -232,6 +232,17 @@ A) Push към конкретна unpublished тема (за да не се съ
 B) Добра практика
    - Дръж проекта в git repo (branch-ове по клиенти/магазини или по feature-и)
 
+C) Файлове извън темата и theme push
+   - В папката на темата може да имаш и „странични“ файлове: .gitignore, .theme-check.yml,
+     shopify-theme-procedure.txt и др. Те НЕ са част от официалната структура на темата.
+   - shopify theme push качва съдържанието на папката; CLI може да включва и файлове извън
+     папките assets/config/layout/locales/sections/snippets/templates. За да не се качват
+     страничните файлове, използвай .shopifyignore в корена на темата (ред по ред – пътища,
+     които да се пропускат при push). В този проект .shopifyignore изключва: .gitignore,
+     .theme-check.yml, shopify-theme-procedure.txt.
+   - Така при push в Shopify отиват само файловете на темата; .shopifyignore се уважава от
+     shopify theme push (но не от GitHub интеграцията за теми, ако я ползваш).
+
 ############### server #######################################################
 За най-бърза проверка инсталирай MaxMind GeoLite2:
 Регистрирай се на https://www.maxmind.com/en/geolite2/signup
