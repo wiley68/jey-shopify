@@ -224,17 +224,124 @@
                   </label>
                 </div>
               </div>
+
               <!-- Стъпка 2: (съдържанието ще се добави на следващ етап) -->
-              <div id="jet-popup-step2" class="jet-popup-step" style="display: none;"></div>
+              <div id="jet-popup-step2" class="jet-popup-step" style="display: none;">
+                <div class="jet-popup-step2-body">
+                  <!-- Ред 1: Име -->
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label" for="jet-step2-firstname">Име *</label>
+                    <input
+                      type="text"
+                      id="jet-step2-firstname"
+                      class="jet-popup-input"
+                      autocomplete="given-name"
+                      required
+                    >
+                  </div>
+                  <!-- Ред 2: Фамилия -->
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label" for="jet-step2-lastname">Фамилия *</label>
+                    <input
+                      type="text"
+                      id="jet-step2-lastname"
+                      class="jet-popup-input"
+                      autocomplete="family-name"
+                      required
+                    >
+                  </div>
+                  <!-- Ред 3: ЕГН -->
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label" for="jet-step2-egn">ЕГН *</label>
+                    <input
+                      type="text"
+                      id="jet-step2-egn"
+                      class="jet-popup-input"
+                      inputmode="numeric"
+                      pattern="[0-9]{10}"
+                      maxlength="10"
+                      required
+                    >
+                  </div>
+                  <!-- Ред 4: Мобилен телефон -->
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label" for="jet-step2-phone">Мобилен телефон *</label>
+                    <input
+                      type="tel"
+                      id="jet-step2-phone"
+                      class="jet-popup-input"
+                      autocomplete="tel"
+                      required
+                    >
+                  </div>
+                  <!-- Ред 5: E-Mail -->
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-label" for="jet-step2-email">E-Mail *</label>
+                    <input
+                      type="email"
+                      id="jet-step2-email"
+                      class="jet-popup-input"
+                      autocomplete="email"
+                      required
+                    >
+                  </div>
+
+                  <div class="jet-popup-divider"></div>
+
+                  <div class="jet-popup-row">
+                    <label class="jet-popup-checkbox-label">
+                      <input type="checkbox" id="jet-step2-terms-checkbox" class="jet-popup-checkbox">
+                      <a
+                        href="https://www.postbank.bg/common-conditions-PFBG"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Запознах се с условията за кандидатстване на ПБ Лични финанси *
+                      </a>
+                    </label>
+                  </div>
+                  <div class="jet-popup-row">
+                    <a
+                      href="https://www.postbank.bg/product-information-PBPG-retailers"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="jet-popup-link-text"
+                    >
+                      Продуктова Информация на ПБ Лични финанси
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
-            <!-- Футър с бутони – пълна ширина, фон #01a66c -->
+
+            <!-- Футър – отделна секция, от край до край -->
             <div class="jet-popup-footer">
-              <div class="jet-popup-buttons">
-                <button type="button" id="jet-cancel-btn" class="jet-popup-btn">Откажи</button>
-                <button type="button" id="jet-add-to-cart-btn" class="jet-popup-btn">Добави в количката</button>
-                <button type="button" id="jet-buy-on-credit-btn" class="jet-popup-btn" disabled>
-                  Купи на изплащане
-                </button>
+              <div id="jet-popup-footer-step1" class="jet-popup-footer-inner">
+                <div class="jet-popup-buttons">
+                  <button type="button" id="jet-cancel-btn" class="jet-popup-btn">Откажи</button>
+                  <button type="button" id="jet-add-to-cart-btn" class="jet-popup-btn">Добави в количката</button>
+                  <button type="button" id="jet-buy-on-credit-btn" class="jet-popup-btn" disabled>
+                    Купи на изплащане
+                  </button>
+                </div>
+              </div>
+              <div
+                id="jet-popup-footer-step2"
+                class="jet-popup-footer-inner jet-popup-footer-step2"
+                style="display: none;"
+              >
+                <div class="jet-popup-buttons jet-popup-buttons-left">
+                  <button type="button" id="jet-step2-back-btn" class="jet-popup-btn">Назад</button>
+                </div>
+                <div class="jet-popup-buttons jet-popup-buttons-right">
+                  <button type="button" id="jet-step2-cancel-btn" class="jet-popup-btn">Откажи</button>
+                  <span
+                    class="jet-popup-submit-wrap"
+                    id="jet-step2-submit-wrap"
+                  >
+                    <button type="button" id="jet-step2-submit-btn" class="jet-popup-btn" disabled>Изпрати</button>
+                  </span>
+                </div>
               </div>
             </div>
           </div>

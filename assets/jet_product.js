@@ -137,19 +137,20 @@
     const jetTotalCreditPrice = productPrice - currentParva;
 
     // Брой вноски: от параметъра (напр. от попъпа) или изчислен от цената
-    if (vnoski === undefined || vnoski === null) {
-      vnoski = calculateVnoski(productPrice, jetMinVnoski, jetVnoskiDefault, currentParva);
-    }
+    const vnoskiResolved =
+      vnoski === undefined || vnoski === null
+        ? calculateVnoski(productPrice, jetMinVnoski, jetVnoskiDefault, currentParva)
+        : vnoski;
 
     // Обновяваме елементите за редовен лизинг (използва jet_purcent)
     const regularElements = document.querySelectorAll('.jet-vnoska-regular');
     regularElements.forEach(function (element) {
       if (element instanceof HTMLElement) {
         const jetPurcent = parseFloat(element.dataset.jetPurcent || '0') || 0;
-        const jetVnoskaCents = calculateJetVnoska(jetTotalCreditPrice, vnoski, jetPurcent);
+        const jetVnoskaCents = calculateJetVnoska(jetTotalCreditPrice, vnoskiResolved, jetPurcent);
         const jetVnoskaFormatted = formatEuro(jetVnoskaCents);
-        element.textContent = vnoski + ' x ' + jetVnoskaFormatted + ' €';
-        element.dataset.vnoski = String(vnoski);
+        element.textContent = vnoskiResolved + ' x ' + jetVnoskaFormatted + ' €';
+        element.dataset.vnoski = String(vnoskiResolved);
         element.dataset.jetVnoska = String(jetVnoskaCents);
       }
     });
@@ -159,10 +160,10 @@
     cardElements.forEach(function (element) {
       if (element instanceof HTMLElement) {
         const jetPurcentCard = parseFloat(element.dataset.jetPurcentCard || '0') || 0;
-        const jetVnoskaCents = calculateJetVnoska(jetTotalCreditPrice, vnoski, jetPurcentCard);
+        const jetVnoskaCents = calculateJetVnoska(jetTotalCreditPrice, vnoskiResolved, jetPurcentCard);
         const jetVnoskaFormatted = formatEuro(jetVnoskaCents);
-        element.textContent = vnoski + ' x ' + jetVnoskaFormatted + ' €';
-        element.dataset.vnoski = String(vnoski);
+        element.textContent = vnoskiResolved + ' x ' + jetVnoskaFormatted + ' €';
+        element.dataset.vnoski = String(vnoskiResolved);
         element.dataset.jetVnoska = String(jetVnoskaCents);
       }
     });
@@ -380,8 +381,12 @@
     // При отваряне винаги показваме стъпка 1
     const step1 = document.getElementById('jet-popup-step1');
     const step2 = document.getElementById('jet-popup-step2');
+    const footerStep1 = document.getElementById('jet-popup-footer-step1');
+    const footerStep2 = document.getElementById('jet-popup-footer-step2');
     if (step1) step1.style.display = '';
     if (step2) step2.style.display = 'none';
+    if (footerStep1) footerStep1.style.display = '';
+    if (footerStep2) footerStep2.style.display = 'none';
 
     overlay.style.display = 'flex';
 
@@ -400,10 +405,31 @@
     if (overlay) {
       overlay.style.display = 'none';
     }
+    /* Изчистване на полетата и чекбокса на стъпка 2 */
+    var step2Ids = ['jet-step2-firstname', 'jet-step2-lastname', 'jet-step2-egn', 'jet-step2-phone', 'jet-step2-email'];
+    step2Ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el instanceof HTMLInputElement) {
+        el.value = '';
+        el.classList.remove('jet-input-error');
+      }
+    });
+    var termsCheck = document.getElementById('jet-step2-terms-checkbox');
+    if (termsCheck && termsCheck instanceof HTMLInputElement) {
+      termsCheck.checked = false;
+    }
+    var step2SubmitBtn = document.getElementById('jet-step2-submit-btn');
+    if (step2SubmitBtn && step2SubmitBtn instanceof HTMLButtonElement) {
+      step2SubmitBtn.disabled = true;
+    }
     const step1 = document.getElementById('jet-popup-step1');
     const step2 = document.getElementById('jet-popup-step2');
+    const footerStep1 = document.getElementById('jet-popup-footer-step1');
+    const footerStep2 = document.getElementById('jet-popup-footer-step2');
     if (step1) step1.style.display = '';
     if (step2) step2.style.display = 'none';
+    if (footerStep1) footerStep1.style.display = '';
+    if (footerStep2) footerStep2.style.display = 'none';
     var termsCheckbox = document.getElementById('jet-terms-checkbox');
     var gdprCheckbox = document.getElementById('jet-gdpr-checkbox');
     if (termsCheckbox && termsCheckbox instanceof HTMLInputElement) {
@@ -723,9 +749,155 @@
         if (buyOnCreditBtn.disabled) return;
         const step1 = document.getElementById('jet-popup-step1');
         const step2 = document.getElementById('jet-popup-step2');
+        const footerStep1 = document.getElementById('jet-popup-footer-step1');
+        const footerStep2 = document.getElementById('jet-popup-footer-step2');
         if (step1) step1.style.display = 'none';
-        if (step2) step2.style.display = 'block';
-        // Съдържанието на стъпка 2 ще се добави на следващ етап
+        if (step2) step2.style.display = 'flex';
+        if (footerStep1) footerStep1.style.display = 'none';
+        if (footerStep2) footerStep2.style.display = 'flex';
+        setTimeout(updateStep2SubmitButtonState, 0);
+      });
+    }
+
+    // Стъпка 2: Назад -> връщане към стъпка 1
+    const step2BackBtn = document.getElementById('jet-step2-back-btn');
+    if (step2BackBtn) {
+      step2BackBtn.addEventListener('click', function () {
+        const step1 = document.getElementById('jet-popup-step1');
+        const step2 = document.getElementById('jet-popup-step2');
+        const footerStep1 = document.getElementById('jet-popup-footer-step1');
+        const footerStep2 = document.getElementById('jet-popup-footer-step2');
+        if (step1) step1.style.display = '';
+        if (step2) step2.style.display = 'none';
+        if (footerStep1) footerStep1.style.display = '';
+        if (footerStep2) footerStep2.style.display = 'none';
+      });
+    }
+
+    // Стъпка 2: Откажи -> затваря попъпа
+    const step2CancelBtn = document.getElementById('jet-step2-cancel-btn');
+    if (step2CancelBtn) {
+      step2CancelBtn.addEventListener('click', closeJetPopup);
+    }
+
+    // Стъпка 2: валидация и бутон Изпрати
+    /** Валидира българско ЕГН (10 цифри + контролна цифра) @param {string} egn */
+    function isValidEgn(egn) {
+      if (!egn || typeof egn !== 'string') return false;
+      var digits = egn.replace(/\D/g, '');
+      if (digits.length !== 10) return false;
+      var weights = [2, 4, 8, 5, 10, 9, 7, 3, 6];
+      var sum = 0;
+      for (var i = 0; i < 9; i++) {
+        var d = digits[i];
+        var w = weights[i];
+        if (d === undefined || w === undefined) return false;
+        sum += parseInt(d, 10) * w;
+      }
+      var check = sum % 11;
+      if (check === 10) check = 0;
+      var last = digits[9];
+      return last !== undefined && parseInt(last, 10) === check;
+    }
+
+    /**
+     * Проверка дали всички условия за стъпка 2 са изпълнени.
+     * Условия: попълнени Име и Фамилия, валидно ЕГН, телефон минимум 10 цифри,
+     * валиден email, отметнат чекбокс за условията на ПБ Лични финанси.
+     * При true активираме бутона Изпрати.
+     * @returns {boolean}
+     */
+    function isStep2FormValid() {
+      var firstname = document.getElementById('jet-step2-firstname');
+      var lastname = document.getElementById('jet-step2-lastname');
+      var egnInput = document.getElementById('jet-step2-egn');
+      var phone = document.getElementById('jet-step2-phone');
+      var email = document.getElementById('jet-step2-email');
+      var terms = document.getElementById('jet-step2-terms-checkbox');
+      if (!firstname || !lastname || !egnInput || !phone || !email || !terms) return false;
+      if (!(firstname instanceof HTMLInputElement) || !(lastname instanceof HTMLInputElement) ||
+        !(egnInput instanceof HTMLInputElement) || !(phone instanceof HTMLInputElement) ||
+        !(email instanceof HTMLInputElement) || !(terms instanceof HTMLInputElement)) return false;
+
+      var conditionName = (firstname.value || '').trim().length > 0 && (lastname.value || '').trim().length > 0;
+      var conditionEgn = isValidEgn((egnInput.value || '').trim());
+      var conditionPhone = (phone.value || '').replace(/\s/g, '').length >= 10;
+      var conditionEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email.value || '').trim());
+      var conditionTerms = terms.checked === true;
+
+      return conditionName && conditionEgn && conditionPhone && conditionEmail && conditionTerms;
+    }
+
+    /** Активира бутона Изпрати само ако всички условия са изпълнени. */
+    function updateStep2SubmitButtonState() {
+      var btn = document.getElementById('jet-step2-submit-btn');
+      if (btn && btn instanceof HTMLButtonElement) {
+        btn.disabled = !isStep2FormValid();
+      }
+    }
+
+    /** Маркира невалидните полета в стъпка 2 с червена рамка */
+    function highlightInvalidStep2Fields() {
+      var firstname = document.getElementById('jet-step2-firstname');
+      var lastname = document.getElementById('jet-step2-lastname');
+      var egnInput = document.getElementById('jet-step2-egn');
+      var phone = document.getElementById('jet-step2-phone');
+      var email = document.getElementById('jet-step2-email');
+      /** @param {HTMLElement | null} el @param {boolean} invalid */
+      function setError(el, invalid) {
+        if (el && el.classList) {
+          if (invalid) el.classList.add('jet-input-error');
+          else el.classList.remove('jet-input-error');
+        }
+      }
+      if (firstname instanceof HTMLInputElement) setError(firstname, (firstname.value || '').trim().length === 0);
+      if (lastname instanceof HTMLInputElement) setError(lastname, (lastname.value || '').trim().length === 0);
+      if (egnInput instanceof HTMLInputElement) setError(egnInput, !isValidEgn((egnInput.value || '').trim()));
+      if (phone instanceof HTMLInputElement) setError(phone, (phone.value || '').replace(/\s/g, '').length < 10);
+      if (email instanceof HTMLInputElement) setError(email, !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email.value || '').trim()));
+    }
+
+    /** @param {HTMLElement | null} el */
+    function clearInputError(el) {
+      if (el && el.classList) el.classList.remove('jet-input-error');
+    }
+
+    /* Проверка при излизане от всяко задължително поле и при промяна на чекбокса */
+    var step2InputIds = ['jet-step2-firstname', 'jet-step2-lastname', 'jet-step2-egn', 'jet-step2-phone', 'jet-step2-email'];
+    step2InputIds.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('blur', updateStep2SubmitButtonState);
+        el.addEventListener('focus', function () { clearInputError(el); });
+      }
+    });
+    var egnEl = document.getElementById('jet-step2-egn');
+    if (egnEl && egnEl instanceof HTMLInputElement) {
+      var egnInputRef = egnEl;
+      egnEl.addEventListener('input', function () {
+        egnInputRef.value = egnInputRef.value.replace(/\D/g, '').slice(0, 10);
+      });
+    }
+    var step2Terms = document.getElementById('jet-step2-terms-checkbox');
+    if (step2Terms) {
+      step2Terms.addEventListener('change', updateStep2SubmitButtonState);
+    }
+
+    const step2SubmitBtn = document.getElementById('jet-step2-submit-btn');
+    const step2SubmitWrap = document.getElementById('jet-step2-submit-wrap');
+    if (step2SubmitWrap) {
+      step2SubmitWrap.addEventListener('click', function (e) {
+        if (step2SubmitBtn && step2SubmitBtn instanceof HTMLButtonElement && step2SubmitBtn.disabled) {
+          e.preventDefault();
+          highlightInvalidStep2Fields();
+        }
+      });
+    }
+    if (step2SubmitBtn && step2SubmitBtn instanceof HTMLButtonElement) {
+      step2SubmitBtn.disabled = true;
+      step2SubmitBtn.addEventListener('click', function () {
+        if (step2SubmitBtn.disabled) return;
+        // TODO: изпращане на заявка
       });
     }
   }

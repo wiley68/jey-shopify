@@ -80,18 +80,43 @@
   padding: 0 24px;
 }
 
-/* Футър от край до край, без отстъпи от контейнера */
+/* Футър – отделна секция, от край до край (като тялото и разделителя) */
 .jet-popup-footer {
+  flex-shrink: 0;
+  width: 100%;
   background: #01a66c;
   padding: 16px 24px;
   border-radius: 0 0 3px 3px;
+  margin: 0;
 }
 
-/* Стъпките са flex колони с същия gap като преди */
+.jet-popup-footer-inner {
+  width: 100%;
+}
+
+/* Стъпка 2: Назад вляво, Откажи + Изпрати вдясно */
+.jet-popup-footer-step2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Стъпките са flex колони с 8px gap между редовете */
 .jet-popup-step {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.jet-popup-step2-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jet-popup-step2-body .jet-popup-input {
+  text-align: left;
 }
 
 .jet-popup-content .jet-popup-step .jet-popup-row:nth-child(-n+8) {
@@ -281,6 +306,22 @@ select.jet-popup-select {
   cursor: not-allowed;
 }
 
+/* Подсветка при непопълнено/невалидно поле (стъпка 2) */
+.jet-popup-input.jet-input-error,
+.jet-popup-input.jet-input-error:focus {
+  border-color: #dc2626;
+}
+
+.jet-popup-submit-wrap {
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+}
+
+.jet-popup-submit-wrap .jet-popup-btn:disabled {
+  pointer-events: none;
+}
+
 .jet-popup-btn {
   height: 48px;
   background-color: #166534;
@@ -339,6 +380,16 @@ select.jet-popup-select {
   text-decoration: underline;
 }
 
+.jet-popup-link-text {
+  color: #01a66c;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.jet-popup-link-text:hover {
+  text-decoration: underline;
+}
+
 /* Собствен стил за чекбоксите в попъпа – по-големи, квадратни, нативен вид */
 .jet-popup-checkbox {
   margin-top: 4px;
@@ -361,4 +412,12 @@ select.jet-popup-select {
   display: flex;
   justify-content: flex-end;
   gap: 4px;
+}
+
+.jet-popup-footer-step2 .jet-popup-buttons-left {
+  justify-content: flex-start;
+}
+
+.jet-popup-footer-step2 .jet-popup-buttons-right {
+  justify-content: flex-end;
 }
