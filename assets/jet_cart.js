@@ -5,6 +5,9 @@
   // Първоначална вноска (в центове, по подразбиране 0)
   let jet_parva = 0;
 
+  /** Курс 1 EUR = 1.95583 BGN (за показ на суми в лева в попъпа) */
+  var JET_EUR_TO_BGN = 1.95583;
+
   var JETCREDIT_FINANCIAL_MAX_ITERATIONS = 128;
   var JETCREDIT_FINANCIAL_PRECISION = 1e-8;
 
@@ -288,6 +291,43 @@
    * @param {number} vnoski - Брой вноски
    * @param {number} jetPurcent - Процент
    */
+  /** Формат за показ в input: евро и в лева вътре в полето (€ / лв.) @param {number} euro */
+  function formatEuroBgn(euro) {
+    var e = euro || 0;
+    return e.toFixed(2) + ' / ' + (e * JET_EUR_TO_BGN).toFixed(2);
+  }
+
+  /** Задава евро + втора сума: в input (value) или в div с .jet-popup-euro и .jet-popup-bgn @param {string} elementId @param {number} euro */
+  function setEuroBgnDisplay(elementId, euro) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+    var e = euro || 0;
+    var bgn = (e * JET_EUR_TO_BGN).toFixed(2);
+    if (el instanceof HTMLInputElement) {
+      el.value = e.toFixed(2) + ' / ' + bgn;
+    } else {
+      var euroSpan = el.querySelector('.jet-popup-euro');
+      var bgnSpan = el.querySelector('.jet-popup-bgn');
+      if (euroSpan) euroSpan.textContent = e.toFixed(2);
+      if (bgnSpan) bgnSpan.textContent = ' / ' + bgn;
+    }
+  }
+
+  /** Връща стойността в евро от полето (input или div с .jet-popup-euro) @param {string} elementId @returns {number} */
+  function getEuroFromEuroBgnField(elementId) {
+    var el = document.getElementById(elementId);
+    if (!el) return 0;
+    var euroSpan = el.querySelector('.jet-popup-euro');
+    var raw = el instanceof HTMLInputElement ? el.value : (euroSpan ? euroSpan.textContent : '');
+    return parseFloat(String(raw).replace(',', '.')) || 0;
+  }
+
+  /**
+   * @param {number} productPrice
+   * @param {number} parva
+   * @param {number} vnoski
+   * @param {number} jetPurcent
+   */
   function updatePopupValues(productPrice, parva, vnoski, jetPurcent) {
     const container = document.getElementById('jet-cart-button-container');
     const jetMinpriceEuro = container ? (parseFloat(container.dataset.jetMinprice || '0') || 0) : 0;
@@ -316,10 +356,7 @@
       parvaInput.value = String(Math.round(parvaEuro));
     }
 
-    const productPriceInput = document.getElementById('jet-product-price-input-cart');
-    if (productPriceInput && productPriceInput instanceof HTMLInputElement) {
-      productPriceInput.value = productPriceEuro.toFixed(2);
-    }
+    setEuroBgnDisplay('jet-product-price-input-cart', productPriceEuro);
 
     const vnoskiSelect = document.getElementById('jet-vnoski-select-cart');
     if (vnoskiSelect && vnoskiSelect instanceof HTMLSelectElement) {
@@ -335,20 +372,9 @@
       syncJetVnoskiDisplay();
     }
 
-    const totalCreditInput = document.getElementById('jet-total-credit-input-cart');
-    if (totalCreditInput && totalCreditInput instanceof HTMLInputElement) {
-      totalCreditInput.value = totalCreditPriceEuro.toFixed(2);
-    }
-
-    const monthlyVnoskaInput = document.getElementById('jet-monthly-vnoska-input-cart');
-    if (monthlyVnoskaInput && monthlyVnoskaInput instanceof HTMLInputElement) {
-      monthlyVnoskaInput.value = monthlyVnoskaEuro.toFixed(2);
-    }
-
-    const totalPaymentsInput = document.getElementById('jet-total-payments-input-cart');
-    if (totalPaymentsInput && totalPaymentsInput instanceof HTMLInputElement) {
-      totalPaymentsInput.value = totalPaymentsEuro.toFixed(2);
-    }
+    setEuroBgnDisplay('jet-total-credit-input-cart', totalCreditPriceEuro);
+    setEuroBgnDisplay('jet-monthly-vnoska-input-cart', monthlyVnoskaEuro);
+    setEuroBgnDisplay('jet-total-payments-input-cart', totalPaymentsEuro);
 
     var gprGlp = calculateGprGlp(vnoski, monthlyVnoskaEuro, totalCreditPriceEuro);
     var gprInput = document.getElementById('jet-fix-gpr-input-cart');
@@ -516,8 +542,7 @@
     const totalPaymentsEuro = vnoski * monthlyVnoskaEuro;
     const parvaInput = document.getElementById('jet-parva-input-card-cart');
     if (parvaInput && parvaInput instanceof HTMLInputElement) parvaInput.value = String(Math.round(parvaEuro));
-    const productPriceInput = document.getElementById('jet-product-price-input-card-cart');
-    if (productPriceInput && productPriceInput instanceof HTMLInputElement) productPriceInput.value = (productPrice / 100).toFixed(2);
+    setEuroBgnDisplay('jet-product-price-input-card-cart', productPriceEuro);
     const vnoskiSelect = document.getElementById('jet-vnoski-select-card-cart');
     if (vnoskiSelect && vnoskiSelect instanceof HTMLSelectElement) {
       const val = String(vnoski);
@@ -528,12 +553,9 @@
       }
       syncJetVnoskiDisplayCard();
     }
-    const totalCreditInput = document.getElementById('jet-total-credit-input-card-cart');
-    if (totalCreditInput && totalCreditInput instanceof HTMLInputElement) totalCreditInput.value = totalCreditPriceEuro.toFixed(2);
-    const monthlyVnoskaInput = document.getElementById('jet-monthly-vnoska-input-card-cart');
-    if (monthlyVnoskaInput && monthlyVnoskaInput instanceof HTMLInputElement) monthlyVnoskaInput.value = monthlyVnoskaEuro.toFixed(2);
-    const totalPaymentsInput = document.getElementById('jet-total-payments-input-card-cart');
-    if (totalPaymentsInput && totalPaymentsInput instanceof HTMLInputElement) totalPaymentsInput.value = totalPaymentsEuro.toFixed(2);
+    setEuroBgnDisplay('jet-total-credit-input-card-cart', totalCreditPriceEuro);
+    setEuroBgnDisplay('jet-monthly-vnoska-input-card-cart', monthlyVnoskaEuro);
+    setEuroBgnDisplay('jet-total-payments-input-card-cart', totalPaymentsEuro);
     var gprGlp = calculateGprGlp(vnoski, monthlyVnoskaEuro, totalCreditPriceEuro);
     var gprInput = document.getElementById('jet-fix-gpr-input-card-cart');
     if (gprInput && gprInput instanceof HTMLInputElement) gprInput.value = gprGlp.gpr.toFixed(2);

@@ -81,6 +81,7 @@
           data-jet-email-shop="{{ settings.jet_email_shop | strip | escape }}"
           data-jet-primary-url="{{ jet_primary_url | escape }}"
           data-jet-secondary-url="{{ jet_secondary_url | escape }}"
+          data-jet-secondary-currency="{% if settings.jet_secondary_currency %}true{% else %}false{% endif %}"
         >
           <img
             src="{{ 'jet.png' | asset_url }}"
@@ -97,6 +98,9 @@
             data-jet-purcent="{{ settings.jet_purcent }}"
           >
             {{ jet_vnoski }} x {{ jet_vnoska | round: 2 }} €
+            {%- if settings.jet_secondary_currency %}
+              <span class="jet-vnoska-bgn">({{ jet_vnoska | times: 1.95583 | round: 2 }} лв.)</span>
+            {%- endif %}
           </div>
         {% endif %}
 
@@ -124,14 +128,16 @@
 
                 <!-- Ред 2: Цена на стоките -->
                 <div class="jet-popup-row">
-                  <label class="jet-popup-label">Цена на стоките (€)</label>
-                  <input
-                    type="text"
+                  <label class="jet-popup-label">Цена на стоките (€/лв.)</label>
+                  <div
                     id="jet-product-price-input"
-                    class="jet-popup-input jet-popup-input-readonly"
-                    readonly
-                    value="{{ product_price | round: 2 }}"
+                    class="jet-popup-input jet-popup-input-readonly jet-popup-euro-bgn-wrap"
+                    role="textbox"
+                    aria-readonly="true"
                   >
+                    <span class="jet-popup-euro">{{ product_price | round: 2 }}</span
+                    ><span class="jet-popup-bgn"> / {{ product_price | times: 1.95583 | round: 2 }}</span>
+                  </div>
                 </div>
 
                 <!-- Ред 3: Брой погасителни вноски (custom dropdown за падинг в опциите) -->
@@ -156,26 +162,30 @@
 
                 <!-- Ред 4: Общ размер на кредита -->
                 <div class="jet-popup-row">
-                  <label class="jet-popup-label">Общ размер на кредита (€)</label>
-                  <input
-                    type="text"
+                  <label class="jet-popup-label">Общ размер на кредита (€/лв.)</label>
+                  <div
                     id="jet-total-credit-input"
-                    class="jet-popup-input jet-popup-input-readonly"
-                    readonly
-                    value="{{ jet_total_credit_price | round: 2 }}"
+                    class="jet-popup-input jet-popup-input-readonly jet-popup-euro-bgn-wrap"
+                    role="textbox"
+                    aria-readonly="true"
                   >
+                    <span class="jet-popup-euro">{{ jet_total_credit_price | round: 2 }}</span
+                    ><span class="jet-popup-bgn"> / {{ jet_total_credit_price | times: 1.95583 | round: 2 }}</span>
+                  </div>
                 </div>
 
                 <!-- Ред 5: Месечна вноска -->
                 <div class="jet-popup-row">
-                  <label class="jet-popup-label">Месечна вноска (€)</label>
-                  <input
-                    type="text"
+                  <label class="jet-popup-label">Месечна вноска (€/лв.)</label>
+                  <div
                     id="jet-monthly-vnoska-input"
-                    class="jet-popup-input jet-popup-input-readonly"
-                    readonly
-                    value="{{ jet_vnoska | round: 2 }}"
+                    class="jet-popup-input jet-popup-input-readonly jet-popup-euro-bgn-wrap"
+                    role="textbox"
+                    aria-readonly="true"
                   >
+                    <span class="jet-popup-euro">{{ jet_vnoska | round: 2 }}</span
+                    ><span class="jet-popup-bgn"> / {{ jet_vnoska | times: 1.95583 | round: 2 }}</span>
+                  </div>
                 </div>
 
                 <!-- Ред 6: Фикс ГПР -->
@@ -204,14 +214,18 @@
 
                 <!-- Ред 8: Обща стойност на плащанията -->
                 <div class="jet-popup-row">
-                  <label class="jet-popup-label">Обща стойност на плащанията (€)</label>
-                  <input
-                    type="text"
+                  <label class="jet-popup-label">Обща стойност на плащанията (€/лв.)</label>
+                  <div
                     id="jet-total-payments-input"
-                    class="jet-popup-input jet-popup-input-readonly"
-                    readonly
-                    value="{{ jet_vnoski | times: jet_vnoska | round: 2 }}"
+                    class="jet-popup-input jet-popup-input-readonly jet-popup-euro-bgn-wrap"
+                    role="textbox"
+                    aria-readonly="true"
                   >
+                    <span class="jet-popup-euro">{{ jet_vnoski | times: jet_vnoska | round: 2 }}</span
+                    ><span class="jet-popup-bgn">
+                      / {{ jet_vnoski | times: jet_vnoska | times: 1.95583 | round: 2 -}}
+                    </span>
+                  </div>
                 </div>
 
                 <!-- Ред 9: Разделител и checkbox-ове -->
@@ -395,6 +409,9 @@
               data-jet-purcent-card="{{ settings.jet_purcent_card }}"
             >
               {{ jet_vnoski }} x {{ jet_vnoska_card | round: 2 }} €
+              {%- if settings.jet_secondary_currency %}
+                <span class="jet-vnoska-bgn">({{ jet_vnoska_card | times: 1.95583 | round: 2 }} лв.)</span>
+              {%- endif %}
             </div>
           {% endif %}
 
@@ -411,14 +428,16 @@
                     </div>
                   </div>
                   <div class="jet-popup-row">
-                    <label class="jet-popup-label">Цена на стоките (€)</label>
-                    <input
-                      type="text"
+                    <label class="jet-popup-label">Цена на стоките (€/лв.)</label>
+                    <div
                       id="jet-product-price-input-card"
-                      class="jet-popup-input jet-popup-input-readonly"
-                      readonly
-                      value="{{ product_price | round: 2 }}"
+                      class="jet-popup-input jet-popup-input-readonly jet-popup-euro-bgn-wrap"
+                      role="textbox"
+                      aria-readonly="true"
                     >
+                      <span class="jet-popup-euro">{{ product_price | round: 2 }}</span
+                      ><span class="jet-popup-bgn"> / {{ product_price | times: 1.95583 | round: 2 }}</span>
+                    </div>
                   </div>
                   <div class="jet-popup-row">
                     <label class="jet-popup-label">Брой погасителни вноски</label>
@@ -443,24 +462,28 @@
                     </div>
                   </div>
                   <div class="jet-popup-row">
-                    <label class="jet-popup-label">Общ размер на кредита (€)</label>
-                    <input
-                      type="text"
+                    <label class="jet-popup-label">Общ размер на кредита (€/лв.)</label>
+                    <div
                       id="jet-total-credit-input-card"
-                      class="jet-popup-input jet-popup-input-readonly"
-                      readonly
-                      value="{{ jet_total_credit_price | round: 2 }}"
+                      class="jet-popup-input jet-popup-input-readonly jet-popup-euro-bgn-wrap"
+                      role="textbox"
+                      aria-readonly="true"
                     >
+                      <span class="jet-popup-euro">{{ jet_total_credit_price | round: 2 }}</span
+                      ><span class="jet-popup-bgn"> / {{ jet_total_credit_price | times: 1.95583 | round: 2 }}</span>
+                    </div>
                   </div>
                   <div class="jet-popup-row">
-                    <label class="jet-popup-label">Месечна вноска (€)</label>
-                    <input
-                      type="text"
+                    <label class="jet-popup-label">Месечна вноска (€/лв.)</label>
+                    <div
                       id="jet-monthly-vnoska-input-card"
-                      class="jet-popup-input jet-popup-input-readonly"
-                      readonly
-                      value="{{ jet_vnoska_card | round: 2 }}"
+                      class="jet-popup-input jet-popup-input-readonly jet-popup-euro-bgn-wrap"
+                      role="textbox"
+                      aria-readonly="true"
                     >
+                      <span class="jet-popup-euro">{{ jet_vnoska_card | round: 2 }}</span
+                      ><span class="jet-popup-bgn"> / {{ jet_vnoska_card | times: 1.95583 | round: 2 }}</span>
+                    </div>
                   </div>
                   <div class="jet-popup-row">
                     <label class="jet-popup-label">Фикс ГПР (%)</label>
@@ -483,14 +506,18 @@
                     >
                   </div>
                   <div class="jet-popup-row">
-                    <label class="jet-popup-label">Обща стойност на плащанията (€)</label>
-                    <input
-                      type="text"
+                    <label class="jet-popup-label">Обща стойност на плащанията (€/лв.)</label>
+                    <div
                       id="jet-total-payments-input-card"
-                      class="jet-popup-input jet-popup-input-readonly"
-                      readonly
-                      value="{{ jet_vnoski | times: jet_vnoska_card | round: 2 }}"
+                      class="jet-popup-input jet-popup-input-readonly jet-popup-euro-bgn-wrap"
+                      role="textbox"
+                      aria-readonly="true"
                     >
+                      <span class="jet-popup-euro">{{ jet_vnoski | times: jet_vnoska_card | round: 2 }}</span
+                      ><span class="jet-popup-bgn">
+                        / {{ jet_vnoski | times: jet_vnoska_card | times: 1.95583 | round: 2 -}}
+                      </span>
+                    </div>
                   </div>
                   <div class="jet-popup-divider"></div>
                   <div class="jet-popup-row">

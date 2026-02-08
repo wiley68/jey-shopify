@@ -54,6 +54,13 @@
         "default": true
       },
       {
+        "type": "checkbox",
+        "id": "jet_secondary_currency",
+        "label": "Покажи цена и в лева",
+        "info": "Дали да се показва цена и в лева, след първата валута?",
+        "default": true
+      },
+      {
         "type": "text",
         "id": "jet_email_pbpf",
         "label": "Email ПБ Лични Финанси",
