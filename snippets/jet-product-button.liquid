@@ -74,6 +74,11 @@
           data-shop-domain="{{ shop.domain | escape }}"
           data-shop-permanent-domain="{{ shop.permanent_domain | escape }}"
           data-product-id="{{ product.id }}"
+          data-product-title="{{ product.title | escape }}"
+          data-product-price-eur="{{ product_price | round: 2 }}"
+          data-variant-options="{{ product.selected_or_first_available_variant.title | escape }}"
+          data-jet-email-pbpf="{{ settings.jet_email_pbpf | strip | escape }}"
+          data-jet-email-shop="{{ settings.jet_email_shop | strip | escape }}"
           data-jet-primary-url="{{ jet_primary_url | escape }}"
           data-jet-secondary-url="{{ jet_secondary_url | escape }}"
         >

@@ -828,28 +828,84 @@
   }
 
   /**
-   * Изпраща POST заявка към приложението (app) с jet_id. Първо опит към primary URL, при грешка – fallback към secondary.
-   * Логва JSON отговора в конзолата (дебъг).
+   * Изпраща POST заявка към приложението (app) с всички полета и items.
+   * @param {boolean} [isCard=false] true ако изпращаме от попъпа за кредитна карта
    */
-  function sendJetRequestToApp() {
+  function sendJetRequestToApp(isCard) {
     var container = document.getElementById('jet-product-button-container');
     if (!container) return;
     var jetId = (container.dataset.jetId || '').trim();
     var shopDomain = (container.dataset.shopDomain || '').trim();
     var shopPermanentDomain = (container.dataset.shopPermanentDomain || '').trim();
     var productId = (container.dataset.productId ?? '').toString().trim();
+    var productTitle = (container.dataset.productTitle || '').trim();
+    var productPriceCents = parseFloat(container.dataset.productPrice || '0') || 0;
+    var productPriceEur = productPriceCents > 0
+      ? (productPriceCents / 100).toFixed(2)
+      : (container.dataset.productPriceEur ?? '').toString().trim();
+    var variantOptions = (container.dataset.variantOptions || '').trim();
+    var jetEmailPbpf = (container.dataset.jetEmailPbpf || '').trim();
+    var jetEmailShop = (container.dataset.jetEmailShop || '').trim();
+    var jetParva = (container.dataset.jetParva ?? '0').toString().trim();
     var primaryUrl = (container.dataset.jetPrimaryUrl || '').trim();
     var secondaryUrl = (container.dataset.jetSecondaryUrl || '').trim();
+
+    var firstnameId = isCard ? 'jet-step2-firstname-card' : 'jet-step2-firstname';
+    var lastnameId = isCard ? 'jet-step2-lastname-card' : 'jet-step2-lastname';
+    var egnId = isCard ? 'jet-step2-egn-card' : 'jet-step2-egn';
+    var phoneId = isCard ? 'jet-step2-phone-card' : 'jet-step2-phone';
+    var emailId = isCard ? 'jet-step2-email-card' : 'jet-step2-email';
+    var vnoskiSelectId = isCard ? 'jet-vnoski-select-card' : 'jet-vnoski-select';
+    var vnoskaInputId = isCard ? 'jet-monthly-vnoska-input-card' : 'jet-monthly-vnoska-input';
+    var parvaInputId = isCard ? 'jet-parva-input-card' : 'jet-parva-input';
+
+    var firstnameEl = document.getElementById(firstnameId);
+    var lastnameEl = document.getElementById(lastnameId);
+    var egnEl = document.getElementById(egnId);
+    var phoneEl = document.getElementById(phoneId);
+    var emailEl = document.getElementById(emailId);
+    var firstname = (firstnameEl instanceof HTMLInputElement && firstnameEl.value) ? firstnameEl.value.trim() : '';
+    var lastname = (lastnameEl instanceof HTMLInputElement && lastnameEl.value) ? lastnameEl.value.trim() : '';
+    var egn = (egnEl instanceof HTMLInputElement && egnEl.value) ? egnEl.value.trim() : '';
+    var phone = (phoneEl instanceof HTMLInputElement && phoneEl.value) ? phoneEl.value.trim() : '';
+    var email = (emailEl instanceof HTMLInputElement && emailEl.value) ? emailEl.value.trim() : '';
+    var vnoskiSelectEl = document.getElementById(vnoskiSelectId);
+    var jetVnoski = (vnoskiSelectEl instanceof HTMLSelectElement && vnoskiSelectEl.value) ? vnoskiSelectEl.value.trim() : '';
+    var vnoskaInputEl = document.getElementById(vnoskaInputId);
+    var jetVnoska = (vnoskaInputEl instanceof HTMLInputElement && vnoskaInputEl.value) ? vnoskaInputEl.value.trim() : '';
+    var parvaInputEl = document.getElementById(parvaInputId);
+    var jetParvaFromInput = (parvaInputEl instanceof HTMLInputElement && parvaInputEl.value) ? parvaInputEl.value.trim() : jetParva;
+
+    var items = [{
+      jet_product_id: productId,
+      product_c_txt: productTitle,
+      att_name: variantOptions || undefined,
+      product_p_txt: productPriceEur,
+      jet_quantity: '1'
+    }];
+
     if (!primaryUrl) {
       console.log('[Jet] Debug: jet_id=', jetId, '(primary URL не е зададен в снипета)');
       return;
     }
-    var body = JSON.stringify({
+    var payload = {
       jet_id: jetId,
       shop_domain: shopDomain,
       shop_permanent_domain: shopPermanentDomain,
-      product_id: productId
-    });
+      'jet-step2-firstname': firstname,
+      'jet-step2-lastname': lastname,
+      'jet-step2-egn': egn,
+      'jet-step2-phone': phone,
+      'jet-step2-email': email,
+      items: items,
+      jet_card: !!isCard,
+      jet_parva: jetParvaFromInput,
+      jet_vnoski: jetVnoski,
+      jet_vnoska: jetVnoska,
+      jet_email_pbpf: jetEmailPbpf,
+      jet_email_shop: jetEmailShop
+    };
+    var body = JSON.stringify(payload);
     var opts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body };
 
     /** @param {string} url */
@@ -1117,7 +1173,7 @@
       step2SubmitBtn.disabled = true;
       step2SubmitBtn.addEventListener('click', function () {
         if (step2SubmitBtn.disabled) return;
-        sendJetRequestToApp();
+        sendJetRequestToApp(false);
       });
     }
   }
@@ -1313,7 +1369,7 @@
       step2SubmitBtnCard.disabled = true;
       step2SubmitBtnCard.addEventListener('click', function () {
         if (submitBtnRefCard.disabled) return;
-        sendJetRequestToApp();
+        sendJetRequestToApp(true);
       });
     }
   }

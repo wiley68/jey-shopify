@@ -2,7 +2,7 @@
 
 /**
  * Приложение за изпращане на имейли от заявки за кредит (ПБ Лични Финанси).
- * Посреща POST с jet_id и връща JSON (за дебъг и последващо изпращане на мейл).
+ * Посреща POST с jet_id, shop, items, данни от форма и връща JSON.
  * CORS: разрешава заявки от магазина (fetch от storefront).
  */
 
@@ -28,16 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode([
         'ok' => false,
         'error' => 'Method not allowed',
-        'jet_id' => null,
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-// Четене на тялото веднъж – нужни са jet_id и задължителни полета за security
-$jetId = null;
-$shopDomain = null;
-$shopPermanentDomain = null;
-$productId = null;
+// Четене на тялото веднъж
 $contentType = $_SERVER['HTTP_CONTENT_TYPE'] ?? '';
 $handler = fopen('php://input', 'r');
 $rawInput = $handler !== false ? stream_get_contents($handler) : '';
@@ -46,60 +41,45 @@ if ($handler !== false) {
 }
 $rawInput = ($rawInput !== false) ? $rawInput : '';
 
+$payload = [];
 if ($rawInput !== '' && (strpos($contentType, 'application/json') !== false || strpos(trim($rawInput), '{') === 0)) {
-    $data = json_decode($rawInput, true);
-    if (is_array($data)) {
-        $jetId = isset($data['jet_id']) ? trim((string) $data['jet_id']) : null;
-        $shopDomain = isset($data['shop_domain']) ? trim((string) $data['shop_domain']) : null;
-        $shopPermanentDomain = isset($data['shop_permanent_domain']) ? trim((string) $data['shop_permanent_domain']) : null;
-        $productId = isset($data['product_id']) ? trim((string) $data['product_id']) : null;
+    $decoded = json_decode($rawInput, true);
+    if (is_array($decoded)) {
+        $payload = $decoded;
     }
 }
-if ($jetId === null && isset($_POST['jet_id'])) {
-    $jetId = trim((string) $_POST['jet_id']);
-}
-if ($shopDomain === null && isset($_POST['shop_domain'])) {
-    $shopDomain = trim((string) $_POST['shop_domain']);
-}
-if ($shopPermanentDomain === null && isset($_POST['shop_permanent_domain'])) {
-    $shopPermanentDomain = trim((string) $_POST['shop_permanent_domain']);
-}
-if ($productId === null && isset($_POST['product_id'])) {
-    $productId = trim((string) $_POST['product_id']);
-}
-if ($jetId === null && $rawInput !== '') {
+if ($payload === [] && $rawInput !== '') {
     parse_str($rawInput, $parsed);
-    if (isset($parsed['jet_id'])) {
-        $jetId = trim((string) $parsed['jet_id']);
-    }
-    if ($shopDomain === null && isset($parsed['shop_domain'])) {
-        $shopDomain = trim((string) $parsed['shop_domain']);
-    }
-    if ($shopPermanentDomain === null && isset($parsed['shop_permanent_domain'])) {
-        $shopPermanentDomain = trim((string) $parsed['shop_permanent_domain']);
-    }
-    if ($productId === null && isset($parsed['product_id'])) {
-        $productId = trim((string) $parsed['product_id']);
+    if (is_array($parsed)) {
+        $payload = $parsed;
     }
 }
+
+// Нормализиране на стойности – trim за string полета
+$trimStrings = function (array $data) use (&$trimStrings) {
+    $out = [];
+    foreach ($data as $k => $v) {
+        if (is_string($v)) {
+            $out[$k] = trim($v);
+        } elseif (is_array($v)) {
+            $out[$k] = $trimStrings($v);
+        } else {
+            $out[$k] = $v;
+        }
+    }
+    return $out;
+};
+$payload = $trimStrings($payload);
 
 require_once __DIR__ . '/security.php';
-perform_security_checks($jetId, $shopDomain, $shopPermanentDomain, $productId);
+perform_security_checks($payload);
 
-$response = [
-    'ok' => true,
-    'jet_id' => $jetId,
-    'shop_domain' => $shopDomain,
-    'shop_permanent_domain' => $shopPermanentDomain,
-    'product_id' => $productId,
-];
+$response = ['ok' => true];
+foreach ($payload as $key => $value) {
+    $response[$key] = $value;
+}
 if (PB_DEBUG) {
-    $response['debug'] = [
-        'jet_id' => $jetId,
-        'shop_domain' => $shopDomain,
-        'shop_permanent_domain' => $shopPermanentDomain,
-        'product_id' => $productId,
-    ];
+    $response['debug'] = $payload;
 }
 
 echo json_encode($response, JSON_UNESCAPED_UNICODE);

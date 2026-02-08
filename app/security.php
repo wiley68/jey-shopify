@@ -28,13 +28,11 @@ function jet_exit_403(string $reason): void
 /**
  * Изпълнява всички проверки за сигурност.
  *
- * @param string|null $jetId jet_id от тялото (rate limit по магазин)
- * @param string|null $shopDomain shop_domain
- * @param string|null $shopPermanentDomain shop_permanent_domain
- * @param string|null $productId product_id
+ * @param array<string, mixed> $payload декодирано тяло на заявката (JSON)
  */
-function perform_security_checks(?string $jetId = null, ?string $shopDomain = null, ?string $shopPermanentDomain = null, ?string $productId = null): void
+function perform_security_checks(array $payload): void
 {
+    $jetId = isset($payload['jet_id']) ? trim((string) $payload['jet_id']) : null;
     // 1. Само POST (OPTIONS се обработва в index.php преди извикването тук)
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
@@ -91,16 +89,60 @@ function perform_security_checks(?string $jetId = null, ?string $shopDomain = nu
     }
 
     // 8. Задължителни полета
+    $step2Firstname = isset($payload['jet-step2-firstname']) ? trim((string) $payload['jet-step2-firstname']) : null;
+    $step2Lastname = isset($payload['jet-step2-lastname']) ? trim((string) $payload['jet-step2-lastname']) : null;
+    $step2Egn = isset($payload['jet-step2-egn']) ? trim((string) $payload['jet-step2-egn']) : null;
+    $step2Phone = isset($payload['jet-step2-phone']) ? trim((string) $payload['jet-step2-phone']) : null;
+    $step2Email = isset($payload['jet-step2-email']) ? trim((string) $payload['jet-step2-email']) : null;
+    $items = isset($payload['items']) && is_array($payload['items']) ? $payload['items'] : null;
+    $jetCard = array_key_exists('jet_card', $payload) ? (bool) $payload['jet_card'] : null;
+    $jetParva = isset($payload['jet_parva']) ? trim((string) $payload['jet_parva']) : null;
+    $jetVnoski = isset($payload['jet_vnoski']) ? trim((string) $payload['jet_vnoski']) : null;
+    $jetVnoska = isset($payload['jet_vnoska']) ? trim((string) $payload['jet_vnoska']) : null;
+    $jetEmailPbpf = isset($payload['jet_email_pbpf']) ? trim((string) $payload['jet_email_pbpf']) : null;
+    $jetEmailShop = isset($payload['jet_email_shop']) ? trim((string) $payload['jet_email_shop']) : null;
+    $shopDomain = isset($payload['shop_domain']) ? trim((string) $payload['shop_domain']) : null;
+    $shopPermanentDomain = isset($payload['shop_permanent_domain']) ? trim((string) $payload['shop_permanent_domain']) : null;
+
     $required = [
         'jet_id' => $jetId,
         'shop_domain' => $shopDomain,
         'shop_permanent_domain' => $shopPermanentDomain,
-        'product_id' => $productId,
+        'jet-step2-firstname' => $step2Firstname,
+        'jet-step2-lastname' => $step2Lastname,
+        'jet-step2-egn' => $step2Egn,
+        'jet-step2-phone' => $step2Phone,
+        'jet-step2-email' => $step2Email,
+        'jet_parva' => $jetParva,
+        'jet_vnoski' => $jetVnoski,
+        'jet_vnoska' => $jetVnoska,
+        'jet_email_pbpf' => $jetEmailPbpf,
+        'jet_email_shop' => $jetEmailShop,
     ];
     $missing = [];
     foreach ($required as $name => $value) {
         if ($value === null || $value === '') {
             $missing[] = $name;
+        }
+    }
+    if (array_key_exists('jet_card', $payload) === false) {
+        $missing[] = 'jet_card';
+    }
+    if ($items === null || $items === []) {
+        $missing[] = 'items';
+    } else {
+        foreach ($items as $i => $item) {
+            if (!is_array($item)) {
+                $missing[] = 'items[' . $i . ']';
+                continue;
+            }
+            $pid = isset($item['jet_product_id']) ? trim((string) $item['jet_product_id']) : null;
+            $cTxt = isset($item['product_c_txt']) ? trim((string) $item['product_c_txt']) : null;
+            $pTxt = isset($item['product_p_txt']) ? trim((string) $item['product_p_txt']) : null;
+            $qty = isset($item['jet_quantity']) ? trim((string) $item['jet_quantity']) : null;
+            if ($pid === null || $pid === '' || $cTxt === null || $cTxt === '' || $pTxt === null || $pTxt === '' || $qty === null || $qty === '') {
+                $missing[] = 'items[' . $i . '].jet_product_id|product_c_txt|product_p_txt|jet_quantity';
+            }
         }
     }
     if ($missing !== []) {
