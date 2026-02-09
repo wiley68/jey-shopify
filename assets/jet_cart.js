@@ -1153,13 +1153,14 @@
           if (!selector) continue;
           var cartTotalEl = document.querySelector(selector);
           if (cartTotalEl) {
-            // Първо проверяваме data атрибути
+            // Първо проверяваме data атрибути (те са вече в центове)
             var dataTotal = cartTotalEl.getAttribute('data-cart-total') || 
                            cartTotalEl.getAttribute('data-total-price') ||
                            cartTotalEl.getAttribute('data-total');
             if (dataTotal) {
               var num = parseFloat(dataTotal);
               if (!isNaN(num) && num > 0) {
+                // Data атрибутите са вече в центове, не умножаваме
                 cartTotalCents = Math.round(num);
                 break;
               }
@@ -1169,28 +1170,28 @@
             var totalText = cartTotalEl.textContent || '';
             if (totalText) {
               // Премахваме всичко освен числа, точка и запетая
-              var cleanText = totalText.replace(/[^\d,.]/g, '');
-              if (cleanText) {
-                // Обработваме различни формати: "100.00", "100,00", "1.000,00"
-                var parts = cleanText.split(/[,.]/);
-                var numStr = '';
-                if (parts.length === 2) {
-                  // Формат "100.00" или "100,00"
-                  numStr = parts[0] + '.' + parts[1];
-                } else if (parts.length > 2) {
-                  // Формат "1.000,00" - последните две части са десетични
-                  numStr = parts.slice(0, -2).join('') + '.' + parts.slice(-2).join('');
-                } else {
-                  numStr = cleanText;
-                }
-                var num = parseFloat(numStr);
-                if (!isNaN(num) && num > 0) {
-                  // Ако числото е малко (под 1000), вероятно е в евро, умножаваме по 100
-                  if (num < 1000) {
-                    cartTotalCents = Math.round(num * 100);
-                  } else {
-                    cartTotalCents = Math.round(num);
+              var priceMatch = totalText.replace(/[^\d,.]/g, '');
+              
+              if (priceMatch) {
+                // Обработваме формат като "2.020,00" (точка за хиляди, запетая за десетични)
+                if (priceMatch.includes(',')) {
+                  // Европейски формат: "2.020,00" -> премахваме точките, заменяме запетаята с точка
+                  priceMatch = priceMatch.replace(/\./g, '').replace(',', '.');
+                } else if (priceMatch.includes('.')) {
+                  // Английски формат: "2020.00" или "2.020.00"
+                  var parts = priceMatch.split('.');
+                  var secondPart = parts[1];
+                  // Ако втората част е 2 цифри, това е десетична част
+                  if (!(parts.length === 2 && secondPart && secondPart.length <= 2)) {
+                    // Иначе точките са за хиляди, премахваме ги
+                    priceMatch = priceMatch.replace(/\./g, '');
                   }
+                }
+                
+                var priceValue = parseFloat(priceMatch);
+                if (!isNaN(priceValue) && priceValue > 0) {
+                  // Винаги конвертираме от евро в центове (умножаваме по 100)
+                  cartTotalCents = Math.round(priceValue * 100);
                   break;
                 }
               }
