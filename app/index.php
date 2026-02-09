@@ -74,6 +74,61 @@ $payload = $trimStrings($payload);
 require_once __DIR__ . '/security.php';
 perform_security_checks($payload);
 
+/**
+ * Връща и инкрементира брояча на заявки за даден магазин (защитено с file locking)
+ * @param string $shopDomain Домейн на магазина (идентификатор)
+ * @return int Поредният номер на заявката
+ */
+function getAndIncrementRequestCounter($shopDomain)
+{
+    // Санитизираме домейна за използване като име на файл
+    $safeDomain = preg_replace('/[^a-zA-Z0-9._-]/', '_', $shopDomain);
+    if (empty($safeDomain)) {
+        $safeDomain = 'default';
+    }
+
+    $countersDir = __DIR__ . '/counters';
+    if (!is_dir($countersDir)) {
+        @mkdir($countersDir, 0755, true);
+    }
+
+    $counterFile = $countersDir . '/' . $safeDomain . '.txt';
+
+    // Отваряме файла за четене и писане (създаваме ако не съществува)
+    $fp = @fopen($counterFile, 'c+');
+    if ($fp === false) {
+        // Ако не можем да отворим файла, връщаме 1 като fallback
+        error_log('[Jet] Failed to open counter file: ' . $counterFile);
+        return 1;
+    }
+
+    // Заключваме файла за ексклузивен достъп (защита от конкурентни заявки)
+    if (!flock($fp, LOCK_EX)) {
+        fclose($fp);
+        error_log('[Jet] Failed to lock counter file: ' . $counterFile);
+        return 1;
+    }
+
+    // Четем текущата стойност
+    rewind($fp);
+    $currentValue = (int) trim(fgets($fp) ?: '0');
+
+    // Инкрементираме
+    $newValue = $currentValue + 1;
+
+    // Записваме новата стойност
+    ftruncate($fp, 0);
+    rewind($fp);
+    fwrite($fp, (string) $newValue);
+    fflush($fp);
+
+    // Отключваме и затваряме
+    flock($fp, LOCK_UN);
+    fclose($fp);
+
+    return $newValue;
+}
+
 $response = ['ok' => true];
 if (PB_DEBUG) {
     $response['debug'] = $payload;
@@ -142,7 +197,14 @@ $body .= "Срок на изплащане в месеца: {$payload['jet_vnosk
 $body .= "Месечна вноска: {$payload['jet_vnoska']};\r\n";
 $body .= "Първоначална вноска: " . number_format(floatval($payload['jet_parva']), 2, ".", "") . ";\r\n";
 
-$subject = $payload['jet_id'] . ", онлайн заявка по поръчка " . 1;
+// Вземаме поредния номер на заявката за този магазин
+// Използваме shop_permanent_domain като първи избор (по-стабилен), иначе shop_domain
+$shopDomain = !empty($payload['shop_permanent_domain'])
+    ? $payload['shop_permanent_domain']
+    : ($payload['shop_domain'] ?? '');
+$requestNumber = getAndIncrementRequestCounter($shopDomain);
+
+$subject = $payload['jet_id'] . ", онлайн заявка по поръчка " . $requestNumber;
 
 $mail = new PHPMailer(true);
 try {

@@ -385,6 +385,30 @@
     return parseFloat(String(raw).replace(',', '.')) || 0;
   }
 
+  /** Изчиства количката в Shopify след успешно изпращане на заявката */
+  function clearShopifyCart() {
+    fetch('/cart/clear.js', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(function (res) {
+        if (res.ok) {
+          // Презареждаме страницата за да се обнови количката визуално (ако има cart drawer/icon)
+          // Може да се използва и custom event за обновяване на UI без reload
+          if (typeof window.dispatchEvent === 'function') {
+            window.dispatchEvent(new CustomEvent('cart:cleared'));
+          }
+        } else {
+          console.warn('[Jet] Failed to clear cart:', res.status);
+        }
+      })
+      .catch(function (err) {
+        console.warn('[Jet] Error clearing cart:', err);
+      });
+  }
+
   /**
    * @param {number} productPrice
    * @param {number} parva
@@ -1065,8 +1089,6 @@
         if (Math.abs(calculatedTotalCents - cartTotalCents) > 1) {
           console.warn('[Jet] Price validation failed: calculated total=' + calculatedTotalCents + ' cents, cart total=' + cartTotalCents + ' cents (difference: ' + (cartTotalCents - calculatedTotalCents) + ' cents)');
           // Не коригираме нищо, само логваме предупреждение
-        } else {
-          console.log('[Jet] Price validation OK: calculated total=' + calculatedTotalCents + ' cents matches cart total=' + cartTotalCents + ' cents');
         }
 
         if (!primaryUrl) {
@@ -1106,9 +1128,14 @@
 
         return doFetch(primaryUrl)
           .then(function (data) {
-            console.log('[Jet] App response (primary):', data);
+            // Изчистваме количката след успешно изпращане (заявката е от количката)
+            clearShopifyCart();
             jetShowCustomAlert('Успешно изпратихте Вашата заявка за лизинг към ПБ Лични Финанси. Очаквайте контакт за потвърждаване на направената от Вас заявка.', function () {
               if (isCard) closeJetPopupCard(); else closeJetPopup();
+              // Презареждаме страницата за да се обнови количката визуално
+              setTimeout(function () {
+                window.location.reload();
+              }, 300);
             });
             return true;
           })
@@ -1118,8 +1145,14 @@
               return doFetch(secondaryUrl)
                 .then(function (data) {
                   console.log('[Jet] App response (fallback):', data);
+                  // Изчистваме количката след успешно изпращане (заявката е от количката)
+                  clearShopifyCart();
                   jetShowCustomAlert('Заявката е изпратена успешно. Ще се свържем с вас скоро.', function () {
                     if (isCard) closeJetPopupCard(); else closeJetPopup();
+                    // Презареждаме страницата за да се обнови количката визуално
+                    setTimeout(function () {
+                      window.location.reload();
+                    }, 300);
                   });
                   return true;
                 })
