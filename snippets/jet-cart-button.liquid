@@ -188,62 +188,87 @@
 
           <!-- Стъпка 2: Форма за кандидатстване -->
           <div id="jet-popup-step2-cart" class="jet-popup-step jet-popup-step2-body" style="display: none;">
+            <!-- Ред 1: Име -->
             <div class="jet-popup-row">
-              <label class="jet-popup-label" for="jet-step2-firstname-cart">Име</label>
+              <label class="jet-popup-label" for="jet-step2-firstname-cart">Име *</label>
               <input
                 type="text"
                 id="jet-step2-firstname-cart"
                 class="jet-popup-input"
-                placeholder="Име"
                 autocomplete="given-name"
+                required
               >
             </div>
+            <!-- Ред 2: Фамилия -->
             <div class="jet-popup-row">
-              <label class="jet-popup-label" for="jet-step2-lastname-cart">Фамилия</label>
+              <label class="jet-popup-label" for="jet-step2-lastname-cart">Фамилия *</label>
               <input
                 type="text"
                 id="jet-step2-lastname-cart"
                 class="jet-popup-input"
-                placeholder="Фамилия"
                 autocomplete="family-name"
+                required
               >
             </div>
+            <!-- Ред 3: ЕГН -->
             <div class="jet-popup-row">
-              <label class="jet-popup-label" for="jet-step2-egn-cart">ЕГН</label>
+              <label class="jet-popup-label" for="jet-step2-egn-cart">ЕГН *</label>
               <input
                 type="text"
                 id="jet-step2-egn-cart"
                 class="jet-popup-input"
-                placeholder="ЕГН (10 цифри)"
                 inputmode="numeric"
+                pattern="[0-9]{10}"
                 maxlength="10"
+                required
               >
             </div>
+            <!-- Ред 4: Мобилен телефон -->
             <div class="jet-popup-row">
-              <label class="jet-popup-label" for="jet-step2-phone-cart">Телефон</label>
+              <label class="jet-popup-label" for="jet-step2-phone-cart">Мобилен телефон *</label>
               <input
                 type="tel"
                 id="jet-step2-phone-cart"
                 class="jet-popup-input"
-                placeholder="Телефон"
                 autocomplete="tel"
+                required
               >
             </div>
+            <!-- Ред 5: E-Mail -->
             <div class="jet-popup-row">
-              <label class="jet-popup-label" for="jet-step2-email-cart">Email</label>
+              <label class="jet-popup-label" for="jet-step2-email-cart">E-Mail *</label>
               <input
                 type="email"
                 id="jet-step2-email-cart"
                 class="jet-popup-input"
-                placeholder="Email"
                 autocomplete="email"
+                required
               >
             </div>
+
+            <div class="jet-popup-divider"></div>
+
             <div class="jet-popup-row">
               <label class="jet-popup-checkbox-label">
                 <input type="checkbox" id="jet-step2-terms-checkbox-cart" class="jet-popup-checkbox">
-                Запознах се с условията за кандидатстване на ПБ Лични финанси
+                <a
+                  href="https://www.postbank.bg/common-conditions-PFBG"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Запознах се с условията за кандидатстване на ПБ Лични финанси *
+                </a>
               </label>
+            </div>
+            <div class="jet-popup-row">
+              <a
+                href="https://www.postbank.bg/product-information-PBPG-retailers"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="jet-popup-link-text"
+              >
+                Продуктова Информация на ПБ Лични финанси
+              </a>
             </div>
           </div>
         </div>
@@ -426,37 +451,87 @@
               </div>
             </div>
             <div id="jet-popup-step2-card-cart" class="jet-popup-step jet-popup-step2-body" style="display: none;">
+              <!-- Ред 1: Име -->
               <div class="jet-popup-row">
-                <label class="jet-popup-label" for="jet-step2-firstname-card-cart">Име</label>
-                <input type="text" id="jet-step2-firstname-card-cart" class="jet-popup-input" placeholder="Име">
+                <label class="jet-popup-label" for="jet-step2-firstname-card-cart">Име *</label>
+                <input
+                  type="text"
+                  id="jet-step2-firstname-card-cart"
+                  class="jet-popup-input"
+                  autocomplete="given-name"
+                  required
+                >
               </div>
+              <!-- Ред 2: Фамилия -->
               <div class="jet-popup-row">
-                <label class="jet-popup-label" for="jet-step2-lastname-card-cart">Фамилия</label>
-                <input type="text" id="jet-step2-lastname-card-cart" class="jet-popup-input" placeholder="Фамилия">
+                <label class="jet-popup-label" for="jet-step2-lastname-card-cart">Фамилия *</label>
+                <input
+                  type="text"
+                  id="jet-step2-lastname-card-cart"
+                  class="jet-popup-input"
+                  autocomplete="family-name"
+                  required
+                >
               </div>
+              <!-- Ред 3: ЕГН -->
               <div class="jet-popup-row">
-                <label class="jet-popup-label" for="jet-step2-egn-card-cart">ЕГН</label>
+                <label class="jet-popup-label" for="jet-step2-egn-card-cart">ЕГН *</label>
                 <input
                   type="text"
                   id="jet-step2-egn-card-cart"
                   class="jet-popup-input"
-                  placeholder="ЕГН"
+                  inputmode="numeric"
+                  pattern="[0-9]{10}"
                   maxlength="10"
+                  required
                 >
               </div>
+              <!-- Ред 4: Мобилен телефон -->
               <div class="jet-popup-row">
-                <label class="jet-popup-label" for="jet-step2-phone-card-cart">Телефон</label>
-                <input type="tel" id="jet-step2-phone-card-cart" class="jet-popup-input" placeholder="Телефон">
+                <label class="jet-popup-label" for="jet-step2-phone-card-cart">Мобилен телефон *</label>
+                <input
+                  type="tel"
+                  id="jet-step2-phone-card-cart"
+                  class="jet-popup-input"
+                  autocomplete="tel"
+                  required
+                >
               </div>
+              <!-- Ред 5: E-Mail -->
               <div class="jet-popup-row">
-                <label class="jet-popup-label" for="jet-step2-email-card-cart">Email</label>
-                <input type="email" id="jet-step2-email-card-cart" class="jet-popup-input" placeholder="Email">
+                <label class="jet-popup-label" for="jet-step2-email-card-cart">E-Mail *</label>
+                <input
+                  type="email"
+                  id="jet-step2-email-card-cart"
+                  class="jet-popup-input"
+                  autocomplete="email"
+                  required
+                >
               </div>
+
+              <div class="jet-popup-divider"></div>
+
               <div class="jet-popup-row">
                 <label class="jet-popup-checkbox-label">
                   <input type="checkbox" id="jet-step2-terms-checkbox-card-cart" class="jet-popup-checkbox">
-                  Запознах се с условията
+                  <a
+                    href="https://www.postbank.bg/common-conditions-PFBG"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Запознах се с условията за кандидатстване на ПБ Лични финанси *
+                  </a>
                 </label>
+              </div>
+              <div class="jet-popup-row">
+                <a
+                  href="https://www.postbank.bg/product-information-PBPG-retailers"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="jet-popup-link-text"
+                >
+                  Продуктова Информация на ПБ Лични финанси
+                </a>
               </div>
             </div>
           </div>
