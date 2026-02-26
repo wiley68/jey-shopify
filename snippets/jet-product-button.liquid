@@ -91,18 +91,6 @@
             height="69"
           >
         </div>
-        {% if settings.jet_vnoska %}
-          <div
-            class="jet-vnoska-text jet-vnoska-regular"
-            data-vnoski="{{ jet_vnoski }}"
-            data-jet-purcent="{{ settings.jet_purcent }}"
-          >
-            {{ jet_vnoski }} x {{ jet_vnoska | round: 2 }} €
-            {%- if settings.jet_secondary_currency %}
-              <span class="jet-vnoska-bgn">({{ jet_vnoska | times: 1.95583 | round: 2 }} лв.)</span>
-            {%- endif %}
-          </div>
-        {% endif %}
 
         <!-- Popup прозорец за лизинг -->
         <div id="jet-popup-overlay" class="jet-popup-overlay" style="display: none;">
@@ -394,26 +382,15 @@
               height="69"
             >
           </div>
-          {% if settings.jet_vnoska %}
-            {% comment %}Изчисляване на месечната вноска за кредитна карта{% endcomment %}
-            {% assign jet_vnoska_card_calc = jet_total_credit_price | divided_by: jet_vnoski | times: 1.0 %}
-            {% assign jet_vnoska_card_multiplier = jet_vnoski
-              | times: settings.jet_purcent_card
-              | divided_by: 100.0
-              | plus: 1.0
-            %}
-            {% assign jet_vnoska_card = jet_vnoska_card_calc | times: jet_vnoska_card_multiplier %}
-            <div
-              class="jet-vnoska-text jet-vnoska-card"
-              data-vnoski="{{ jet_vnoski }}"
-              data-jet-purcent-card="{{ settings.jet_purcent_card }}"
-            >
-              {{ jet_vnoski }} x {{ jet_vnoska_card | round: 2 }} €
-              {%- if settings.jet_secondary_currency %}
-                <span class="jet-vnoska-bgn">({{ jet_vnoska_card | times: 1.95583 | round: 2 }} лв.)</span>
-              {%- endif %}
-            </div>
-          {% endif %}
+
+          {% comment %}Изчисляване на месечната вноска за кредитна карта (за попъпа){% endcomment %}
+          {% assign jet_vnoska_card_calc = jet_total_credit_price | divided_by: jet_vnoski | times: 1.0 %}
+          {% assign jet_vnoska_card_multiplier = jet_vnoski
+            | times: settings.jet_purcent_card
+            | divided_by: 100.0
+            | plus: 1.0
+          %}
+          {% assign jet_vnoska_card = jet_vnoska_card_calc | times: jet_vnoska_card_multiplier %}
 
           <!-- Popup прозорец за лизинг (кредитна карта) – същата логика, jet_purcent_card -->
           <div id="jet-popup-overlay-card" class="jet-popup-overlay" style="display: none;">

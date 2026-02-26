@@ -152,90 +152,11 @@
   }
 
   /**
-   * Обновява текста за вноските на страницата (надписите под бутона)
-   * @param {number} productPrice - Цената в центове
-   * @param {number} parva - Първоначална вноска в центове (опционално, използва текущата стойност ако не е зададена)
-   * @param {number} [vnoski] - Брой вноски (опционално; ако липсва, се изчислява от цената)
-   */
-  function updateVnoskaText(productPrice, parva, vnoski) {
-    const container = document.getElementById('jet-product-button-container');
-    if (!container) return;
-
-    const showBgn = container.dataset.jetSecondaryCurrency === 'true';
-    const jetMinVnoski = parseFloat(container.dataset.jetMinVnoski || '125') || 125;
-    const jetVnoskiDefault = parseFloat(container.dataset.jetVnoskiDefault || '12') || 12;
-    const currentParva = parva !== undefined ? parva : jet_parva;
-
-    // Изчисляваме реалната сума за кредит
-    const jetTotalCreditPrice = productPrice - currentParva;
-
-    // Брой вноски: от параметъра (напр. от попъпа) или изчислен от цената
-    const vnoskiResolved =
-      vnoski === undefined || vnoski === null
-        ? calculateVnoski(productPrice, jetMinVnoski, jetVnoskiDefault, currentParva)
-        : vnoski;
-
-    /** Връща HTML за ред вноска: основен текст + опционално span с лв. (по-малък шрифт) */
-    /** @param {string} jetVnoskaFormatted @param {number} jetVnoskaCents */
-    function vnoskaLineContent(jetVnoskaFormatted, jetVnoskaCents) {
-      var main = vnoskiResolved + ' x ' + jetVnoskaFormatted + ' €';
-      if (showBgn) {
-        var bgn = (jetVnoskaCents / 100) * JET_EUR_TO_BGN;
-        return main + ' <span class="jet-vnoska-bgn">(' + bgn.toFixed(2) + ' лв.)</span>';
-      }
-      return main;
-    }
-
-    // Обновяваме елементите за редовен лизинг (използва jet_purcent)
-    const regularElements = document.querySelectorAll('.jet-vnoska-regular');
-    regularElements.forEach(function (element) {
-      if (element instanceof HTMLElement) {
-        const jetPurcent = parseFloat(element.dataset.jetPurcent || '0') || 0;
-        const jetVnoskaCents = calculateJetVnoska(jetTotalCreditPrice, vnoskiResolved, jetPurcent);
-        const jetVnoskaFormatted = formatEuro(jetVnoskaCents);
-        var content = vnoskaLineContent(jetVnoskaFormatted, jetVnoskaCents);
-        if (showBgn) {
-          element.innerHTML = content;
-        } else {
-          element.textContent = content;
-        }
-        element.dataset.vnoski = String(vnoskiResolved);
-        element.dataset.jetVnoska = String(jetVnoskaCents);
-      }
-    });
-
-    // Обновяваме елементите за кредитна карта (използва jet_purcent_card)
-    const cardElements = document.querySelectorAll('.jet-vnoska-card');
-    cardElements.forEach(function (element) {
-      if (element instanceof HTMLElement) {
-        const jetPurcentCard = parseFloat(element.dataset.jetPurcentCard || '0') || 0;
-        const jetVnoskaCents = calculateJetVnoska(jetTotalCreditPrice, vnoskiResolved, jetPurcentCard);
-        const jetVnoskaFormatted = formatEuro(jetVnoskaCents);
-        var content = vnoskaLineContent(jetVnoskaFormatted, jetVnoskaCents);
-        if (showBgn) {
-          element.innerHTML = content;
-        } else {
-          element.textContent = content;
-        }
-        element.dataset.vnoski = String(vnoskiResolved);
-        element.dataset.jetVnoska = String(jetVnoskaCents);
-      }
-    });
-  }
-
-  /**
-   * Задава първоначалната вноска и обновява изчисленията
+   * Задава първоначалната вноска (използва се от попъпа)
    * @param {number} parva - Първоначална вноска в центове
    */
   function setJetParva(parva) {
     jet_parva = parva || 0;
-    const container = document.getElementById('jet-product-button-container');
-    if (container) {
-      const productPrice = parseFloat(container.dataset.productPrice || '0');
-      if (productPrice) {
-        updateVnoskaText(productPrice, jet_parva);
-      }
-    }
   }
 
   /**
@@ -492,12 +413,8 @@
         const newPrice = unitPriceValue * quantity;
 
         if (newPrice > 0) {
-          // Винаги обновяваме, дори и да е същата цена (за да обновим количеството)
-          // Обновяваме цената в контейнера (запазваме единичната цена)
+          // Обновяваме цената в контейнера (за попъпа при отваряне)
           container.dataset.productPrice = String(unitPriceValue);
-
-          // Обновяваме вноските с общата цена (единична * количество)
-          updateVnoskaText(newPrice, jet_parva);
         }
       }
     }, 300); // Изчакваме 300ms за да Shopify обнови цената в DOM
@@ -562,11 +479,8 @@
 
     const jetPurcent = parseFloat(container.dataset.jetPurcent || '0');
     const currentParva = jet_parva || 0;
-    // Брой вноски при отваряне: от текста под бутона (ако е обновен) или от Liquid (data-jet-vnoski)
-    const vnoskaEl = document.querySelector('.jet-vnoska-regular');
-    const vnoskiFromEl = vnoskaEl instanceof HTMLElement ? vnoskaEl.dataset.vnoski : undefined;
     const currentVnoski = parseInt(
-      vnoskiFromEl || container.dataset.jetVnoski || container.dataset.jetVnoskiDefault || '12',
+      container.dataset.jetVnoski || container.dataset.jetVnoskiDefault || '12',
       10
     );
 
@@ -632,35 +546,11 @@
       gdprCheckbox.checked = false;
       gdprCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    // Запазваме само избрания брой вноски от попъпа (първоначалната вноска винаги се нулира)
-    var vnoskiSelect = document.getElementById('jet-vnoski-select');
-    var currentVnoski = undefined;
-    if (vnoskiSelect && vnoskiSelect instanceof HTMLSelectElement) {
-      currentVnoski = parseInt(vnoskiSelect.value || '12', 10) || 12;
-    }
     // Нулираме първоначалната вноска (и в попъпа, и в глобалната променлива)
     jet_parva = 0;
     var parvaInput = document.getElementById('jet-parva-input');
     if (parvaInput && parvaInput instanceof HTMLInputElement) {
       parvaInput.value = '0';
-    }
-    // Обновяваме текста под бутона: запазваме избрания брой вноски, но нулираме първоначалната вноска
-    var container = document.getElementById('jet-product-button-container');
-    if (container) {
-      // Вземаме единичната цена от контейнера
-      var unitPrice = parseFloat(container.dataset.productPrice || '0');
-      if (unitPrice) {
-        // Вземаме текущото количество от формата (за да запазим промененото количество)
-        const quantityInput = document.querySelector('input[name="quantity"], input[type="number"][name*="quantity"]');
-        let quantity = 1;
-        if (quantityInput && quantityInput instanceof HTMLInputElement) {
-          quantity = parseInt(quantityInput.value) || 1;
-        }
-        // Умножаваме единичната цена по количеството за да получим общата цена
-        var totalPrice = unitPrice * quantity;
-        // Запазваме избрания брой вноски, но винаги нулираме първоначалната вноска (0)
-        updateVnoskaText(totalPrice, 0, currentVnoski);
-      }
     }
   }
 
@@ -848,9 +738,6 @@
 
     // Обновяваме стойностите в popup-а
     updatePopupValues(productPrice, parvaCents, vnoski, jetPurcent);
-
-    // Обновяваме надписите под бутона с избрания брой вноски от попъпа
-    updateVnoskaText(productPrice, parvaCents, vnoski);
   }
 
   /**
@@ -1020,7 +907,6 @@
     }
     const vnoski = parseInt(vnoskiSelect instanceof HTMLSelectElement ? vnoskiSelect.value : '12') || 12;
     updatePopupValuesCard(productPrice, parvaCents, vnoski, jetPurcentCard);
-    updateVnoskaText(productPrice, parvaCents, vnoski);
   }
 
   function openJetPopupCard() {
@@ -1070,9 +956,7 @@
     productPrice = productPrice * quantity;
     const jetPurcentCard = parseFloat(container.dataset.jetPurcentCard || '0');
     const currentParva = parseFloat(container.dataset.jetParva || '0') || 0;
-    const vnoskaEl = document.querySelector('.jet-vnoska-card');
-    const vnoskiFromEl = vnoskaEl instanceof HTMLElement ? vnoskaEl.dataset.vnoski : undefined;
-    const currentVnoski = parseInt(vnoskiFromEl || container.dataset.jetVnoskiDefault || '12', 10);
+    const currentVnoski = parseInt(container.dataset.jetVnoskiDefault || '12', 10);
     const step1 = document.getElementById('jet-popup-step1-card');
     const step2 = document.getElementById('jet-popup-step2-card');
     const footerStep1 = document.getElementById('jet-popup-footer-step1-card');
@@ -1120,34 +1004,10 @@
       gdprCheckboxCard.checked = false;
       gdprCheckboxCard.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    // Запазваме само избрания брой вноски от попъпа (първоначалната вноска винаги се нулира)
-    var vnoskiSelectCard = document.getElementById('jet-vnoski-select-card');
-    var currentVnoskiCard = undefined;
-    if (vnoskiSelectCard && vnoskiSelectCard instanceof HTMLSelectElement) {
-      currentVnoskiCard = parseInt(vnoskiSelectCard.value || '12', 10) || 12;
-    }
     // Нулираме първоначалната вноска в попъпа
     var parvaInputCard = document.getElementById('jet-parva-input-card');
     if (parvaInputCard && parvaInputCard instanceof HTMLInputElement) {
       parvaInputCard.value = '0';
-    }
-    // Обновяваме текста под бутона за картата: запазваме избрания брой вноски, но нулираме първоначалната вноска
-    var containerCard = document.getElementById('jet-product-button-card-container');
-    if (containerCard) {
-      // Вземаме единичната цена от контейнера
-      var unitPriceCard = parseFloat(containerCard.dataset.productPrice || '0');
-      if (unitPriceCard) {
-        // Вземаме текущото количество от формата (за да запазим промененото количество)
-        const quantityInput = document.querySelector('input[name="quantity"], input[type="number"][name*="quantity"]');
-        let quantity = 1;
-        if (quantityInput && quantityInput instanceof HTMLInputElement) {
-          quantity = parseInt(quantityInput.value) || 1;
-        }
-        // Умножаваме единичната цена по количеството за да получим общата цена
-        var totalPriceCard = unitPriceCard * quantity;
-        // Запазваме избрания брой вноски, но винаги нулираме първоначалната вноска (0)
-        updateVnoskaText(totalPriceCard, 0, currentVnoskiCard);
-      }
     }
     var addToCartCardBtn = document.getElementById('jet-add-to-cart-btn-card');
     if (addToCartCardBtn && addToCartCardBtn instanceof HTMLButtonElement) {
@@ -1790,12 +1650,6 @@
     // Инициализираме jet_parva от data атрибута (ако има такъв)
     jet_parva = parseFloat(container.dataset.jetParva || '0') || 0;
 
-    // Инициализираме изчислението с текущата цена
-    const productPrice = parseFloat(container.dataset.productPrice || '0');
-    if (productPrice) {
-      updateVnoskaText(productPrice, jet_parva);
-    }
-
     // Клик само върху снимката на бутона, не върху целия контейнер
     const btnImg = container.querySelector('.jet-product-button-img');
     if (btnImg) {
@@ -1948,7 +1802,6 @@
     jetProduct.calculateVnoski = calculateVnoski;
     jetProduct.calculateJetVnoska = calculateJetVnoska;
     jetProduct.formatEuro = formatEuro;
-    jetProduct.updateVnoskaText = updateVnoskaText;
     jetProduct.setJetParva = setJetParva;
     jetProduct.getJetParva = function () {
       return jet_parva;

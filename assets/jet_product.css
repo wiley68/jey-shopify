@@ -17,23 +17,6 @@
   margin-top: 20px;
 }
 
-/* Текст за вноските */
-.jet-vnoska-text {
-  display: block;
-  padding: 2px 0px;
-  color: #01A66C;
-  font-size: 14pt;
-  font-weight: 500;
-  line-height: 26px;
-  text-align: left;
-}
-
-/* Сума в лева в скоби – по-малък шрифт и по-слаба дебелина */
-.jet-vnoska-text .jet-vnoska-bgn {
-  font-size: 0.85em;
-  font-weight: 400;
-}
-
 /* Съобщение за грешка при липсващи настройки */
 .jet-product-error {
   color: #d32f2f;
